@@ -1,0 +1,14 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+remappings = [
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+    "@chainlink/=lib/chainlink-brownie-contracts/"
+]
+solc_version = "0.8.24"
+
+[fmt]
+ignore = ["mixed-case-variable", "unwrapped-modifier-logic"]
+
+
