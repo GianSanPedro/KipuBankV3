@@ -2,11 +2,9 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title KipuBankV2
+ * @title KipuBankV3
  * @author Gian
  * @notice Versión mejorada del contrato KipuBankV2.
- * @dev Banco descentralizado con soporte multi-token, control de acceso, límites globales
- *      y conversión de valores a USD mediante oráculo Chainlink.
  */
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -18,10 +16,10 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import { IUniswapV2Router02 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
+import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
 
-contract KipuBankV2 is Ownable, AccessControl, ReentrancyGuard, Pausable {
+contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     // ============================================================
@@ -304,14 +302,14 @@ contract KipuBankV2 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     // ============================================================
 
     /**
-     * @notice Constructor del contrato principal KipuBankV3.
-     * @dev Inicializa la integración con Uniswap V2 y define los límites globales del banco.
-     * @param _uniswapRouter Dirección del router de Uniswap V2 utilizado para swaps.
-     * @param _bankCapUSDC Límite total de depósitos permitidos en el banco (en USDC).
-     * @param _withdrawLimitUSDC Límite máximo de retiro por usuario (en USDC).
-     * @param _managers Lista inicial de cuentas con rol de MANAGER_ROLE.
-     * @param _auditors Lista inicial de cuentas con rol de AUDITOR_ROLE.
-     */
+    * @notice Constructor del contrato principal KipuBankV3.
+    * @dev Inicializa la integración con Uniswap V2 y define los límites globales del banco.
+    * @param _uniswapRouter Dirección del router de Uniswap V2 utilizado para swaps.
+    * @param _bankCapUSDC Límite total de depósitos permitidos en el banco (en USDC).
+    * @param _withdrawLimitUSDC Límite máximo de retiro por usuario (en USDC).
+    * @param _managers Lista inicial de cuentas con rol de MANAGER_ROLE.
+    * @param _auditors Lista inicial de cuentas con rol de AUDITOR_ROLE.
+    */
     constructor(
         address _uniswapRouter,
         uint256 _bankCapUSDC,
@@ -324,10 +322,26 @@ contract KipuBankV2 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         if (_bankCapUSDC == 0 || _withdrawLimitUSDC == 0)
             revert InvalidAmount(_bankCapUSDC > 0 ? _withdrawLimitUSDC : _bankCapUSDC);
 
-        // --- Configuración de Uniswap V2 ---
+        // --- Configuración de Uniswap V2 (modo seguro para testnet) ---
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
-        uniswapFactory = IUniswapV2Factory(uniswapRouter.factory());
-        WETH = uniswapRouter.WETH();
+
+        // Inicializamos con valores nulos por defecto
+        address factoryAddress = address(0);
+        address wethAddress = address(0);
+
+        // Solo intentamos acceder a funciones si el router tiene código desplegado
+        if (_uniswapRouter.code.length > 0) {
+            try uniswapRouter.factory() returns (address f) {
+                factoryAddress = f;
+            } catch {}
+            try uniswapRouter.WETH() returns (address w) {
+                wethAddress = w;
+            } catch {}
+        }
+
+        // Asignamos las direcciones, incluso si son 0x0 (testnet)
+        uniswapFactory = IUniswapV2Factory(factoryAddress);
+        WETH = wethAddress;
 
         // --- Inicialización de límites globales ---
         bankCap = _bankCapUSDC;

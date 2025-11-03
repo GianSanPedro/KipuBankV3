@@ -76,39 +76,192 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-## ⚒️ **Instrucciones de despliegue con Foundry**
+## Deployment & Verification
 
-> 💡 **Requisitos previos:**
-> - Instalar [Foundry](https://book.getfoundry.sh/getting-started/installation) (`forge`, `cast`, `anvil`)
-> - Contar con una wallet con fondos en **Sepolia**
-> - Configurar la variable `PRIVATE_KEY` en el entorno
+**Contract:** `KipuBankV3`  
+**Network:** Sepolia Testnet  
+**Deployer:** [0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb](https://sepolia.etherscan.io/address/0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb)  
+**Contract Address:** [0xb0B842B5639Be674842003598cB6f80956869775](https://sepolia.etherscan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)  
+**Transaction Hash:** [0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c](https://sepolia.etherscan.io/tx/0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c)
 
-### 🔹 Compilación
+### ✅ Verification
+- **Sourcify:** [Verified Source](https://repo.sourcify.dev/contracts/full_match/11155111/0xb0B842B5639Be674842003598cB6f80956869775)
+- **Routescan:** [View on Routescan](https://sepolia.routescan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)
+- **Blockscout:** [View on Blockscout](https://eth-sepolia.blockscout.com/address/0xb0B842B5639Be674842003598cB6f80956869775)
+- **Etherscan:** [View on Etherscan](https://sepolia.etherscan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)
+
+---
+
+## ⚒️ **Instrucciones completas de despliegue con Foundry (Sepolia)**
+
+> 💡 Esta guía explica cómo desplegar **KipuBankV3** en la red de pruebas **Sepolia**, utilizando Foundry de forma segura y reproducible.  
+> Incluye la creación del archivo `.env` con tus credenciales, la carga de variables en PowerShell y el uso del archivo `args.txt` para pasar correctamente los argumentos del constructor.
+
+---
+
+### 🔹 **1. Requisitos previos**
+
+Antes de comenzar, asegurate de tener instalado y configurado correctamente:
+- 🧠 **Foundry** (que incluye `forge` y `cast`)  
+  → [Instalación oficial](https://book.getfoundry.sh/getting-started/installation)
+- 💼 **Metamask** (para obtener tu *private key* y fondos de Sepolia)
+- 🔑 Una cuenta en **[Infura](https://infura.io/)** (para obtener tu *API key* y conectarte al RPC de Sepolia)
+- 💰 Fondos en Sepolia (podés obtenerlos desde un faucet público, como [https://sepoliafaucet.com/](https://sepoliafaucet.com/))
+
+---
+
+### 🔹 **2. Crear el archivo `.env`**
+
+En la raíz del proyecto (`KipuBankV3/`), crear un archivo llamado `.env` con el siguiente contenido:
+
+```env
+PRIVATE_KEY=0xTU_CLAVE_PRIVADA_DE_METAMASK
+RPC_URL=https://sepolia.infura.io/v3/TU_API_KEY_DE_INFURA
+```
+
+**Importante:**
+- La `PRIVATE_KEY` se obtiene desde Metamask → Configuración → Seguridad → Exportar clave privada (¡nunca la compartas!).
+- La `RPC_URL` se genera desde tu cuenta de Infura, en el panel del proyecto → “Endpoints” → seleccioná “Sepolia”.
+
+---
+
+### 🔹 **3. Cargar las variables de entorno en PowerShell**
+
+Para que PowerShell lea automáticamente las variables desde tu archivo `.env`, ejecutá **una sola vez por sesión**:
+
+```powershell
+$env:RPC_URL = (Get-Content .env | Select-String "RPC_URL" | ForEach-Object { $_.Line.Split('=')[1].Trim() })
+$env:PRIVATE_KEY = (Get-Content .env | Select-String "PRIVATE_KEY" | ForEach-Object { $_.Line.Split('=')[1].Trim() })
+```
+
+✔️ Esto carga ambas variables en la sesión actual de PowerShell **sin mostrar ni exponer la clave privada**.
+
+Podés verificar que se hayan cargado correctamente con:
+```powershell
+echo $env:RPC_URL
+echo $env:PRIVATE_KEY
+```
+
+---
+
+### 🔹 **4. Crear el archivo `args.txt` con los argumentos del constructor**
+
+Debido a que el comando de despliegue generaba errores al pasar arrays directamente por consola, se utiliza un archivo de texto plano llamado `args.txt` en la raíz del proyecto.
+
+Ejemplo de contenido de `args.txt`:
+```text
+0x1C232F01118CB8B424793ae03F870aa7D0ac7f77
+1000000000000000000000000
+1000000000000000000000
+["0x6e1ea69318f595fb90e5f1c68670ba53b28614bb"]
+["0x6e1ea69318f595fb90e5f1c68670ba53b28614bb"]
+```
+
+Donde:
+- La primera dirección es el **router de Uniswap V2** (por ejemplo, el de Sepolia o uno de test).
+- Los siguientes dos números son los límites globales del banco en unidades de USDC (1e6 = 1 USDC).
+- Los dos arrays corresponden a las listas iniciales de `managers` y `auditors`.
+
+---
+
+### 🔹 **5. Compilar el contrato**
+
+Antes de desplegar, asegurate de que compile correctamente:
 ```bash
 forge build
 ```
 
-### 🔹 Despliegue (Sepolia)
+---
+
+### 🔹 **6. Desplegar el contrato en Sepolia**
+
+Finalmente, ejecutá el siguiente comando para desplegar el contrato, cargando los datos desde `args.txt`:
+
 ```bash
-forge create src/Kipu-Bank.sol:KipuBank   --rpc-url https://sepolia.infura.io/v3/<TU_API_KEY>   --private-key $PRIVATE_KEY
+forge create src/Kipu-Bank.sol:KipuBankV3 ^
+  --rpc-url $env:RPC_URL ^
+  --private-key $env:PRIVATE_KEY ^
+  --constructor-args-path args.txt ^
+  --broadcast
 ```
 
-### 🔹 Verificación
-```bash
-forge verify-contract   --chain sepolia   --compiler-version v0.8.24+commit.e11b9ed9   --watch   <CONTRACT_ADDRESS> src/Kipu-Bank.sol:KipuBank
+🦨 *El modificador `--broadcast` envía la transacción a la red y crea el contrato.*
+
+Una vez completado, deberías ver una salida similar a:
+
+```
+Deployer: 0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb
+Deployed to: 0xb0B842B5639Be674842003598cB6f80956869775
+Transaction hash: 0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c
 ```
 
-### 🔹 Interacción
-```bash
-# Consultar balance global
-cast call <CONTRACT_ADDRESS> "totalDepositsUSDC()(uint256)"
+---
 
+### 🔹 **7. Verificación del contrato**
+
+Luego de desplegar, podés verificar automáticamente el código fuente con:
+
+```bash
+forge verify-contract 0xb0B842B5639Be674842003598cB6f80956869775 src/Kipu-Bank.sol:KipuBankV3 --chain sepolia --verifier sourcify --watch
+```
+
+Y si querés hacerlo también en Blockscout:
+```bash
+forge verify-contract 0xb0B842B5639Be674842003598cB6f80956869775 src/Kipu-Bank.sol:KipuBankV3 --chain sepolia --verifier blockscout --verifier-url https://eth-sepolia.blockscout.com/api --watch
+```
+
+---
+
+### ✅ **Resultado esperado**
+
+- Contrato verificado en Sourcify:  
+  [https://repo.sourcify.dev/contracts/full_match/11155111/0xb0B842B5639Be674842003598cB6f80956869775](https://repo.sourcify.dev/contracts/full_match/11155111/0xb0B842B5639Be674842003598cB6f80956869775)
+
+- Dirección del contrato desplegado:  
+  [`0xb0B842B5639Be674842003598cB6f80956869775`](https://sepolia.etherscan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)
+
+- Transacción de despliegue:  
+  [`0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c`](https://sepolia.etherscan.io/tx/0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c)
+
+---
+
+## 🔗 **Interacción con el contrato ya desplegado (instancia oficial KipuBankV3)**
+
+Una vez desplegado, cualquier usuario puede interactuar directamente con la instancia oficial en la red **Sepolia** sin necesidad de volver a desplegarla.
+
+### 🦯 **Datos del contrato**
+- **Contrato:** [`0xb0B842B5639Be674842003598cB6f80956869775`](https://sepolia.etherscan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)
+- **Red:** Sepolia Testnet
+- **Propietario / Deployer:** [`0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb`](https://sepolia.etherscan.io/address/0x6e1ea69318f595fb90e5f1c68670ba53b28614bb)
+
+---
+
+### 🔹 **Comandos de lectura (sin gas)**
+
+```bash
+# Consultar el total de depósitos
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "totalDeposits()(uint256)"
+
+# Consultar límite de retiro
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "withdrawLimit()(uint256)"
+
+# Ver saldo USDC de un usuario
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "userUSDCBalance(address)(uint256)" 0xTU_DIRECCION
+```
+
+---
+
+### 🔹 **Comandos de escritura (requieren gas)**
+
+> ⚠️ *Para estos comandos, necesitás una wallet con fondos en Sepolia y haber cargado la variable `$env:PRIVATE_KEY`.*
+
+```bash
 # Depositar ETH
-cast send <CONTRACT_ADDRESS> "deposit(address,uint256)" 0x0000000000000000000000000000000000000000 0.1ether --value 0.1ether --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "deposit(address,uint256)" 0x0000000000000000000000000000000000000000 0.1ether --value 0.1ether --private-key $env:PRIVATE_KEY
 
 # Retirar fondos
-cast send <CONTRACT_ADDRESS> "withdraw(uint256)" 100000000 --private-key $PRIVATE_KEY
-```
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "withdraw(uint256)" 100000000 --private-key $env:PRIVATE_KEY
+`
 
 ---
 
