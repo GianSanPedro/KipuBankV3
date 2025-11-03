@@ -225,43 +225,134 @@ forge verify-contract 0xb0B842B5639Be674842003598cB6f80956869775 src/Kipu-Bank.s
 
 ---
 
-## 🔗 **Interacción con el contrato ya desplegado (instancia oficial KipuBankV3)**
+## 🔐 Configuración inicial de roles
 
-Una vez desplegado, cualquier usuario puede interactuar directamente con la instancia oficial en la red **Sepolia** sin necesidad de volver a desplegarla.
+Una vez desplegado el contrato, el **Owner (cuenta que lo desplegó)** puede asignar los roles de **Manager** y **Auditor** a otras direcciones.
 
-### 🦯 **Datos del contrato**
-- **Contrato:** [`0xb0B842B5639Be674842003598cB6f80956869775`](https://sepolia.etherscan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)
-- **Red:** Sepolia Testnet
-- **Propietario / Deployer:** [`0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb`](https://sepolia.etherscan.io/address/0x6e1ea69318f595fb90e5f1c68670ba53b28614bb)
+### Asignar rol de Manager
+
+```bash
+cast send 0x<banco_address> "grantRole(bytes32,address)" \
+  0x$(cast keccak "MANAGER_ROLE") 0x<direccion_manager> \
+  --private-key $PRIVATE_KEY
+```
+
+### Asignar rol de Auditor
+
+```bash
+cast send 0x<banco_address> "grantRole(bytes32,address)" \
+  0x$(cast keccak "AUDITOR_ROLE") 0x<direccion_auditor> \
+  --private-key $PRIVATE_KEY
+```
+
+### Revocar un rol
+
+```bash
+cast send 0x<banco_address> "revokeRole(bytes32,address)" \
+  0x$(cast keccak "MANAGER_ROLE") 0x<direccion_manager> \
+  --private-key $PRIVATE_KEY
+```
+
+### Verificar si una cuenta tiene un rol
+
+```bash
+cast call 0x<banco_address> "hasRole(bytes32,address)(bool)" \
+  0x$(cast keccak "MANAGER_ROLE") 0x<direccion_manager>
+```
 
 ---
 
-### 🔹 **Comandos de lectura (sin gas)**
+## ⚙️ Interacciones con el contrato KipuBankV3
 
+> 📍 **Dirección desplegada:**  
+> `0xb0B842B5639Be674842003598cB6f80956869775`  
+> **Red:** Sepolia Testnet  
+> **Versión Solidity:** 0.8.24  
+> **Framework:** Foundry
+
+---
+
+### 🧍‍♂️ 1. Funciones del **Cliente / Usuario común**
+
+#### 🔹 Lectura (no requieren GAS)
 ```bash
-# Consultar el total de depósitos
 cast call 0xb0B842B5639Be674842003598cB6f80956869775 "totalDeposits()(uint256)"
-
-# Consultar límite de retiro
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "userBalances(address)(uint256)" 0x<tu_wallet>
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "userDeposits(address,address)(uint256,uint256,uint256)" 0x<tu_wallet> 0x<token_address>
 cast call 0xb0B842B5639Be674842003598cB6f80956869775 "withdrawLimit()(uint256)"
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "supportedTokens(address)(bool)" 0x<token_address>
+```
 
-# Ver saldo USDC de un usuario
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "userUSDCBalance(address)(uint256)" 0xTU_DIRECCION
+#### 🔹 Escritura (requieren GAS)
+```bash
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "deposit(address,uint256)" 0x<token_address> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "withdraw(uint256)" 100000000 --private-key $PRIVATE_KEY
 ```
 
 ---
 
-### 🔹 **Comandos de escritura (requieren gas)**
+### 🧰 2. Funciones del **Manager (MANAGER_ROLE)**
 
-> ⚠️ *Para estos comandos, necesitás una wallet con fondos en Sepolia y haber cargado la variable `$env:PRIVATE_KEY`.*
-
+#### 🔹 Escritura
 ```bash
-# Depositar ETH
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "deposit(address,uint256)" 0x0000000000000000000000000000000000000000 0.1ether --value 0.1ether --private-key $env:PRIVATE_KEY
-
-# Retirar fondos
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "withdraw(uint256)" 100000000 --private-key $env:PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "toggleToken(address,bool)" 0x<token_address> true --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "setLimits(uint256,uint256)" 1000000000000000000000000 1000000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "setUniswapRouter(address)" 0x<router_address> --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "pause()" --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "unpause()" --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "emergencyWithdraw(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "swapTokens(address,address,uint256)" 0x<token_in> 0x<token_out> 1000000000000000000 --private-key $PRIVATE_KEY
 ```
+
+#### 🔹 Lectura
+```bash
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
+```
+
+---
+
+### 🧮 3. Funciones del **Auditor (AUDITOR_ROLE)**
+
+#### 🔹 Lectura (no requieren GAS)
+```bash
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "totalDeposits()(uint256)"
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
+```
+
+---
+
+### 👑 4. Funciones del **Owner / Administrador principal**
+
+#### 🔹 Gestión de roles
+```bash
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "grantRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "revokeRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
+cast call 0xb0B842B5639Be674842003598cB6f80956869775 "hasRole(bytes32,address)(bool)" 0x<ROLE_HASH> 0x<account>
+```
+
+#### 🔹 Seguridad y administración
+```bash
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "transferOwnership(address)" 0x<nuevo_owner> --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "renounceOwnership()" --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "rescueETH(address,uint256)" 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xb0B842B5639Be674842003598cB6f80956869775 "rescueTokens(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+```
+
+---
+
+## 🧾 Eventos importantes
+
+| Evento | Descripción |
+|---------|-------------|
+| `DepositMade(user, token, amountToken, amountUSDC)` | Al depositar fondos |
+| `WithdrawalMade(user, token, amountUSDC)` | Al retirar fondos |
+| `TokenStatusChanged(token, enabled)` | Al activar/desactivar un token |
+| `LimitsUpdated(newBankCap, newWithdrawLimit)` | Al modificar límites |
+| `SwapExecuted(fromToken, toToken, amountIn, amountOut)` | Al hacer un swap |
+| `ContractPaused(by, timestamp)` / `ContractResumed(by, timestamp)` | Al pausar o reanudar |
+| `RoleGranted(role, account, sender)` / `RoleRevoked(role, account, sender)` | Cambios de roles |
+| `OwnershipTransferred(previousOwner, newOwner)` | Cambio de propietario |
+| `RescueExecuted(asset, to, amount, timestamp)` | Recuperación de fondos bloqueados |
 
 ---
 

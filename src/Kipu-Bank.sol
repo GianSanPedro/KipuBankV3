@@ -7,17 +7,16 @@ pragma solidity ^0.8.20;
  * @notice Versión mejorada del contrato KipuBankV2.
  */
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
-import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import { IUniswapV2Router02 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
-
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import {IUniswapV2Router02} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
+import {IUniswapV2Factory} from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
 contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
@@ -33,7 +32,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
     /// @dev Rol de administrador general: puede configurar límites, tokens
     /// y políticas globales del sistema.
-    bytes32 public constant ADMIN_ROLE   = keccak256("ADMIN_ROLE");
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     /// @dev Rol de manager: puede realizar operaciones diarias, autorizar
     /// retiros especiales, desbloquear fondos, y ejecutar funciones de mantenimiento.
@@ -45,26 +44,27 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
 
     /**
-    * @notice Modificador para funciones reservadas a administradores o al owner.
-    * Se mantiene la compatibilidad con `Ownable`, de modo que el propietario
-    * pueda intervenir incluso si los roles aún no fueron configurados.
-    */
+     * @notice Modificador para funciones reservadas a administradores o al owner.
+     * Se mantiene la compatibilidad con `Ownable`, de modo que el propietario
+     * pueda intervenir incluso si los roles aún no fueron configurados.
+     */
     modifier onlyAdmin() {
-        if (!hasRole(ADMIN_ROLE, msg.sender) && owner() != msg.sender)
+        if (!hasRole(ADMIN_ROLE, msg.sender) && owner() != msg.sender) {
             revert Unauthorized();
+        }
         _;
     }
 
     /**
-    * @notice Modificador para funciones reservadas a managers.
-    * Se usa para tareas operativas rutinarias o de emergencia.
-    */
+     * @notice Modificador para funciones reservadas a managers.
+     * Se usa para tareas operativas rutinarias o de emergencia.
+     */
     modifier onlyManager() {
-        if (!hasRole(MANAGER_ROLE, msg.sender))
+        if (!hasRole(MANAGER_ROLE, msg.sender)) {
             revert Unauthorized();
+        }
         _;
     }
-
 
     // ============================================================
     // 2. VARIABLES GLOBALES Y CONSTANTES
@@ -126,7 +126,6 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     /// se realizan completamente mediante Uniswap V2.
     AggregatorV3Interface public deprecatedPriceFeed;
 
-
     // ============================================================
     // 3. CONTABILIDAD Y ESTRUCTURAS DE DATOS
     // ============================================================
@@ -135,18 +134,18 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     /// En KipuBankV3 ya no se utilizan oráculos externos: las conversiones se realizan
     /// directamente mediante Uniswap V2 al momento del depósito.
     struct TokenInfo {
-        bool enabled;              // Indica si el token está habilitado para depósitos
-        uint8 decimals;            // Decimales del token (para normalización)
-        uint256 totalDeposited;    // Total depositado (en unidades del token)
-        uint256 totalConverted;    // Total convertido a USDC (tras swaps)
+        bool enabled; // Indica si el token está habilitado para depósitos
+        uint8 decimals; // Decimales del token (para normalización)
+        uint256 totalDeposited; // Total depositado (en unidades del token)
+        uint256 totalConverted; // Total convertido a USDC (tras swaps)
     }
 
     /// @dev Información de balance individual por usuario y token.
     /// Permite trazabilidad completa para auditorías.
     struct DepositInfo {
-        uint256 amountToken;    // Cantidad de tokens depositados (en unidades del token original)
-        uint256 amountUSDC;     // Equivalente en USDC obtenido tras ejecutar el swap en Uniswap V2
-        uint256 lastDeposit;    // Marca de tiempo del último depósito
+        uint256 amountToken; // Cantidad de tokens depositados (en unidades del token original)
+        uint256 amountUSDC; // Equivalente en USDC obtenido tras ejecutar el swap en Uniswap V2
+        uint256 lastDeposit; // Marca de tiempo del último depósito
     }
 
     /// @dev Mapeo maestro: token → TokenInfo.
@@ -164,14 +163,13 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     /// @dev Estructura contable global.
     /// Resume la situación total del banco.
     struct BankAccounting {
-        uint256 totalDepositsUSDC;      // Total acumulado de depósitos en USDC
-        uint256 totalWithdrawalsUSDC;   // Total acumulado de retiros en USDC
-        uint256 totalSwapsExecuted;     // Número total de swaps realizados
-        uint256 lastUpdateTimestamp;    // Última actualización contable global
-        uint256 totalConvertedUSDC;     // Total global de USDC recibidos por conversiones
+        uint256 totalDepositsUSDC; // Total acumulado de depósitos en USDC
+        uint256 totalWithdrawalsUSDC; // Total acumulado de retiros en USDC
+        uint256 totalSwapsExecuted; // Número total de swaps realizados
+        uint256 lastUpdateTimestamp; // Última actualización contable global
+        uint256 totalConvertedUSDC; // Total global de USDC recibidos por conversiones
     }
     BankAccounting public accounting;
-
 
     // ============================================================
     // 4. EVENTOS
@@ -184,11 +182,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     /// @param amountUSDC Equivalente en USDC tras el swap.
     /// @param timestamp Momento del depósito (block.timestamp).
     event DepositMade(
-        address indexed user,
-        address indexed token,
-        uint256 amountToken,
-        uint256 amountUSDC,
-        uint256 timestamp
+        address indexed user, address indexed token, uint256 amountToken, uint256 amountUSDC, uint256 timestamp
     );
 
     /// @notice Emite cuando un usuario retira fondos del banco.
@@ -196,12 +190,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     /// @param token Token recibido (por defecto USDC).
     /// @param amountUSDC Monto equivalente en USDC retirado.
     /// @param timestamp Momento del retiro.
-    event WithdrawalMade(
-        address indexed user,
-        address indexed token,
-        uint256 amountUSDC,
-        uint256 timestamp
-    );
+    event WithdrawalMade(address indexed user, address indexed token, uint256 amountUSDC, uint256 timestamp);
 
     /// @notice Emite cuando se realiza un swap en Uniswap para convertir un token a USDC.
     /// @param fromToken Token de entrada.
@@ -209,12 +198,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     /// @param amountIn Cantidad del token de entrada.
     /// @param amountOut Cantidad recibida de salida (en USDC).
     /// @dev Este evento es fundamental para auditar las operaciones automáticas de conversión.
-    event SwapExecuted(
-        address indexed fromToken,
-        address indexed toToken,
-        uint256 amountIn,
-        uint256 amountOut
-    );
+    event SwapExecuted(address indexed fromToken, address indexed toToken, uint256 amountIn, uint256 amountOut);
 
     /// @notice Emite cuando se agrega o actualiza un token soportado.
     /// @param token Dirección del token.
@@ -244,7 +228,6 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         address[] initialManagers,
         address[] initialAuditors
     );
-
 
     // ============================================================
     // 5. ERRORES PERSONALIZADOS
@@ -296,20 +279,19 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     /// @dev Error genérico para operaciones de emergencia o fallback inesperado.
     error UnexpectedFailure(string reason);
 
-
     // ============================================================
     // 6. CONSTRUCTOR E INICIALIZACIÓN DE ROLES Y LÍMITES
     // ============================================================
 
     /**
-    * @notice Constructor del contrato principal KipuBankV3.
-    * @dev Inicializa la integración con Uniswap V2 y define los límites globales del banco.
-    * @param _uniswapRouter Dirección del router de Uniswap V2 utilizado para swaps.
-    * @param _bankCapUSDC Límite total de depósitos permitidos en el banco (en USDC).
-    * @param _withdrawLimitUSDC Límite máximo de retiro por usuario (en USDC).
-    * @param _managers Lista inicial de cuentas con rol de MANAGER_ROLE.
-    * @param _auditors Lista inicial de cuentas con rol de AUDITOR_ROLE.
-    */
+     * @notice Constructor del contrato principal KipuBankV3.
+     * @dev Inicializa la integración con Uniswap V2 y define los límites globales del banco.
+     * @param _uniswapRouter Dirección del router de Uniswap V2 utilizado para swaps.
+     * @param _bankCapUSDC Límite total de depósitos permitidos en el banco (en USDC).
+     * @param _withdrawLimitUSDC Límite máximo de retiro por usuario (en USDC).
+     * @param _managers Lista inicial de cuentas con rol de MANAGER_ROLE.
+     * @param _auditors Lista inicial de cuentas con rol de AUDITOR_ROLE.
+     */
     constructor(
         address _uniswapRouter,
         uint256 _bankCapUSDC,
@@ -319,8 +301,9 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     ) Ownable(msg.sender) {
         // --- Validaciones iniciales ---
         if (_uniswapRouter == address(0)) revert InvalidAddress(_uniswapRouter);
-        if (_bankCapUSDC == 0 || _withdrawLimitUSDC == 0)
+        if (_bankCapUSDC == 0 || _withdrawLimitUSDC == 0) {
             revert InvalidAmount(_bankCapUSDC > 0 ? _withdrawLimitUSDC : _bankCapUSDC);
+        }
 
         // --- Configuración de Uniswap V2 (modo seguro para testnet) ---
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
@@ -369,16 +352,8 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         accounting.lastUpdateTimestamp = block.timestamp;
 
         // --- Evento de inicialización ---
-        emit ContractInitialized(
-            msg.sender,
-            _uniswapRouter,
-            _bankCapUSDC,
-            _withdrawLimitUSDC,
-            _managers,
-            _auditors
-        );
+        emit ContractInitialized(msg.sender, _uniswapRouter, _bankCapUSDC, _withdrawLimitUSDC, _managers, _auditors);
     }
-
 
     // ============================================================
     // 7. DEPÓSITO Y RETIRO
@@ -390,17 +365,12 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param token Dirección del token a depositar (usar address(0) para ETH).
      * @param amount Cantidad del token a depositar.
      */
-    function deposit(address token, uint256 amount)
-        external
-        payable
-        nonReentrant
-        whenNotPaused
-    {
+    function deposit(address token, uint256 amount) external payable nonReentrant whenNotPaused {
         // --- Depósito en ETH ---
         if (token == address(0)) {
             amount = msg.value;
             if (amount == 0) revert InvalidAmount(amount);
-        } 
+        }
         // --- Depósito en token ERC20 ---
         else {
             if (amount == 0) revert InvalidAmount(amount);
@@ -441,19 +411,17 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @notice Permite a un usuario retirar parte o la totalidad de su balance en USDC.
      * @param amountUSDC Monto en USDC que desea retirar.
      */
-    function withdraw(uint256 amountUSDC)
-        external
-        nonReentrant
-        whenNotPaused
-    {
+    function withdraw(uint256 amountUSDC) external nonReentrant whenNotPaused {
         if (amountUSDC == 0) revert InvalidAmount(amountUSDC);
 
         uint256 balance = userUSDCBalance[msg.sender];
-        if (amountUSDC > balance)
+        if (amountUSDC > balance) {
             revert InsufficientBalance(msg.sender, amountUSDC, balance);
+        }
 
-        if (amountUSDC > withdrawLimit)
+        if (amountUSDC > withdrawLimit) {
             revert WithdrawLimitExceeded(amountUSDC, withdrawLimit);
+        }
 
         // --- Actualizar contabilidad ---
         userUSDCBalance[msg.sender] -= amountUSDC;
@@ -473,10 +441,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param amount Cantidad del token a intercambiar.
      * @return amountOut Cantidad recibida en USDC.
      */
-    function _swapToUSDC(address fromToken, uint256 amount)
-        internal
-        returns (uint256 amountOut)
-    {
+    function _swapToUSDC(address fromToken, uint256 amount) internal returns (uint256 amountOut) {
         // --- Caso base: ya es USDC ---
         if (fromToken == address(USDC)) {
             return amount;
@@ -494,11 +459,10 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
             amountsOut = uniswapRouter.getAmountsOut(amount, path);
             uint256 amountOutMin = (amountsOut[1] * 95) / 100;
 
-            uint256[] memory amounts = uniswapRouter.swapExactETHForTokens{value: amount}(
-                amountOutMin, path, address(this), block.timestamp
-            );
+            uint256[] memory amounts =
+                uniswapRouter.swapExactETHForTokens{value: amount}(amountOutMin, path, address(this), block.timestamp);
             amountOut = amounts[1];
-        } 
+        }
         // --- Swap ERC20 → USDC ---
         else {
             IERC20(fromToken).approve(address(uniswapRouter), amount);
@@ -509,9 +473,8 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
             amountsOut = uniswapRouter.getAmountsOut(amount, path);
             uint256 amountOutMin = (amountsOut[1] * 95) / 100;
 
-            uint256[] memory amounts = uniswapRouter.swapExactTokensForTokens(
-                amount, amountOutMin, path, address(this), block.timestamp
-            );
+            uint256[] memory amounts =
+                uniswapRouter.swapExactTokensForTokens(amount, amountOutMin, path, address(this), block.timestamp);
             amountOut = amounts[1];
 
             // Revocar aprobación para evitar exploits
@@ -519,12 +482,12 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         }
 
         // --- Validar slippage real ---
-        if (amountOut < (amountsOut[1] * 95) / 100)
+        if (amountOut < (amountsOut[1] * 95) / 100) {
             revert SlippageExceeded(amountsOut[1], amountOut);
+        }
 
         emit SwapExecuted(fromToken, address(USDC), amount, amountOut);
     }
-
 
     // ============================================================
     // 8. ADMINISTRACIÓN Y CONFIGURACIÓN
@@ -535,12 +498,10 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param newBankCap Nuevo límite total de depósitos (en USDC).
      * @param newWithdrawLimit Nuevo límite máximo de retiro individual (en USDC).
      */
-    function setLimits(uint256 newBankCap, uint256 newWithdrawLimit)
-        external
-        onlyAdmin
-    {
-        if (newBankCap == 0 || newWithdrawLimit == 0)
+    function setLimits(uint256 newBankCap, uint256 newWithdrawLimit) external onlyAdmin {
+        if (newBankCap == 0 || newWithdrawLimit == 0) {
             revert InvalidAmount(newBankCap > 0 ? newWithdrawLimit : newBankCap);
+        }
 
         bankCap = newBankCap;
         withdrawLimit = newWithdrawLimit;
@@ -553,10 +514,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param token Dirección del token.
      * @param enabled true para habilitar, false para deshabilitar.
      */
-    function toggleToken(address token, bool enabled)
-        external
-        onlyAdmin
-    {
+    function toggleToken(address token, bool enabled) external onlyAdmin {
         if (token == address(0)) revert InvalidAddress(token);
 
         TokenInfo storage info = tokenRegistry[token];
@@ -583,10 +541,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @dev También actualiza la referencia a la factory y a WETH para mantener consistencia.
      * @param newRouter Dirección del nuevo router de Uniswap V2.
      */
-    function setUniswapRouter(address newRouter)
-        external
-        onlyAdmin
-    {
+    function setUniswapRouter(address newRouter) external onlyAdmin {
         if (newRouter == address(0)) revert InvalidAddress(newRouter);
 
         uniswapRouter = IUniswapV2Router02(newRouter);
@@ -598,10 +553,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @notice Asigna un nuevo manager operativo.
      * @param account Dirección del nuevo manager.
      */
-    function addManager(address account)
-        external
-        onlyAdmin
-    {
+    function addManager(address account) external onlyAdmin {
         if (account == address(0)) revert InvalidAddress(account);
         _grantRole(MANAGER_ROLE, account);
         emit RoleGrantedLog(MANAGER_ROLE, account, msg.sender);
@@ -611,10 +563,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @notice Asigna un nuevo auditor de solo lectura.
      * @param account Dirección del nuevo auditor.
      */
-    function addAuditor(address account)
-        external
-        onlyAdmin
-    {
+    function addAuditor(address account) external onlyAdmin {
         if (account == address(0)) revert InvalidAddress(account);
         _grantRole(AUDITOR_ROLE, account);
         emit RoleGrantedLog(AUDITOR_ROLE, account, msg.sender);
@@ -625,14 +574,10 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param role Hash del rol a revocar (MANAGER_ROLE o AUDITOR_ROLE).
      * @param account Dirección del usuario.
      */
-    function revokeRoleFrom(bytes32 role, address account)
-        external
-        onlyAdmin
-    {
+    function revokeRoleFrom(bytes32 role, address account) external onlyAdmin {
         if (account == address(0)) revert InvalidAddress(account);
         _revokeRole(role, account);
     }
-
 
     // ============================================================
     // 9. CONVERSIÓN Y ESTIMACIÓN DE VALORES
@@ -647,11 +592,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param amount Cantidad a convertir.
      * @return estimatedUSDC Monto estimado en USDC que se obtendría en un swap real.
      */
-    function estimateUSDCValue(address token, uint256 amount)
-        public
-        view
-        returns (uint256 estimatedUSDC)
-    {
+    function estimateUSDCValue(address token, uint256 amount) public view returns (uint256 estimatedUSDC) {
         if (amount == 0) revert InvalidAmount(amount);
         if (token == address(USDC)) return amount;
 
@@ -675,15 +616,15 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
         // --- Consultar cotización en Uniswap ---
         try uniswapRouter.getAmountsOut(amount, path) returns (uint256[] memory amountsOut) {
-            if (amountsOut.length < 2 || amountsOut[1] == 0)
+            if (amountsOut.length < 2 || amountsOut[1] == 0) {
                 revert UnexpectedFailure("Uniswap: ruta de conversion invalida");
+            }
 
             estimatedUSDC = amountsOut[1];
         } catch {
             revert UnexpectedFailure("Uniswap: error al obtener cotizacion");
         }
     }
-
 
     // ============================================================
     // 10. PAUSABLE Y EMERGENCIAS
@@ -709,11 +650,11 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     }
 
     /**
-    * @notice Emite un registro cuando se ejecuta un retiro de emergencia.
-    * @param token Dirección del token transferido.
-    * @param to Dirección de destino de los fondos.
-    * @param amount Cantidad retirada.
-    */
+     * @notice Emite un registro cuando se ejecuta un retiro de emergencia.
+     * @param token Dirección del token transferido.
+     * @param to Dirección de destino de los fondos.
+     * @param amount Cantidad retirada.
+     */
     event EmergencyWithdrawal(address indexed token, address indexed to, uint256 amount, uint256 timestamp);
 
     /**
@@ -725,16 +666,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param to Dirección de destino de los fondos.
      * @param amount Cantidad a transferir.
      */
-    function emergencyWithdraw(
-        address token,
-        address to,
-        uint256 amount
-    )
-        external
-        onlyAdmin
-        whenPaused
-        nonReentrant
-    {
+    function emergencyWithdraw(address token, address to, uint256 amount) external onlyAdmin whenPaused nonReentrant {
         if (to == address(0)) revert InvalidAddress(to);
         if (amount == 0) revert InvalidAmount(amount);
 
@@ -743,7 +675,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
         if (token == address(0)) {
             // Retiro de ETH nativo
-            (bool success, ) = payable(to).call{value: amount}("");
+            (bool success,) = payable(to).call{value: amount}("");
             if (!success) revert UnexpectedFailure("ETH transfer failed");
         } else {
             // Retiro de tokens ERC20
@@ -753,7 +685,6 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         emit EmergencyWithdrawal(token, to, amount, block.timestamp);
     }
 
-    
     // ============================================================
     // 11. FUNCIONES AUXILIARES INTERNAS
     // ============================================================
@@ -783,11 +714,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param amount Cantidad original.
      * @return normalizedAmount Monto ajustado a 18 decimales.
      */
-    function _normalizeDecimals(address token, uint256 amount)
-        internal
-        view
-        returns (uint256 normalizedAmount)
-    {
+    function _normalizeDecimals(address token, uint256 amount) internal view returns (uint256 normalizedAmount) {
         if (token == address(0)) return amount; // ETH ya tiene 18 decimales
 
         uint8 decimals = IERC20Metadata(token).decimals();
@@ -814,9 +741,9 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     }
 
     /**
-        * @dev Verifica que exista un par válido entre un token y USDC en Uniswap.
-        * @param token Dirección del token a validar.
-        */
+     * @dev Verifica que exista un par válido entre un token y USDC en Uniswap.
+     * @param token Dirección del token a validar.
+     */
     function _verifyPair(address token) internal view {
         if (token == address(USDC)) return; // USDC siempre válido
         address pair = uniswapFactory.getPair(token, address(USDC));
@@ -824,12 +751,12 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     }
 
     /**
-        * @dev Aprueba un monto en un token de forma segura, reseteando primero a cero.
-        * Previene race conditions en algunos tokens ERC20 que no permiten reaprobar sin reset.
-        * @param token Dirección del token.
-        * @param spender Dirección del contrato que usará el token (por ejemplo, Uniswap Router).
-        * @param amount Cantidad a aprobar.
-        */
+     * @dev Aprueba un monto en un token de forma segura, reseteando primero a cero.
+     * Previene race conditions en algunos tokens ERC20 que no permiten reaprobar sin reset.
+     * @param token Dirección del token.
+     * @param spender Dirección del contrato que usará el token (por ejemplo, Uniswap Router).
+     * @param amount Cantidad a aprobar.
+     */
     function _safeApprove(address token, address spender, uint256 amount) internal {
         IERC20(token).approve(spender, 0);
         IERC20(token).approve(spender, amount);
@@ -852,8 +779,9 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param amountUSDC Monto solicitado en USDC.
      */
     function _validateUserBalance(address user, uint256 amountUSDC) internal view {
-        if (userUSDCBalance[user] < amountUSDC)
+        if (userUSDCBalance[user] < amountUSDC) {
             revert InsufficientBalance(user, amountUSDC, userUSDCBalance[user]);
+        }
     }
 
     /**
@@ -866,7 +794,6 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         accounting.totalWithdrawalsUSDC += amountUSDC;
         accounting.lastUpdateTimestamp = block.timestamp;
     }
-
 
     // ============================================================
     // 12. FUNCIONES DE SOPORTE Y FALLBACK
@@ -893,11 +820,11 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     }
 
     /**
-        * @notice Emite un registro cuando se ejecuta una recuperación de fondos de emergencia.
-        * @param asset Dirección del activo recuperado (ETH = address(0)).
-        * @param to Dirección de destino.
-        * @param amount Cantidad transferida.
-        */
+     * @notice Emite un registro cuando se ejecuta una recuperación de fondos de emergencia.
+     * @param asset Dirección del activo recuperado (ETH = address(0)).
+     * @param to Dirección de destino.
+     * @param amount Cantidad transferida.
+     */
     event RescueExecuted(address indexed asset, address indexed to, uint256 amount, uint256 timestamp);
 
     /**
@@ -906,15 +833,11 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param to Dirección que recibirá los fondos.
      * @param amount Cantidad en wei a transferir.
      */
-    function rescueETH(address to, uint256 amount)
-        external
-        onlyAdmin
-        nonReentrant
-    {
+    function rescueETH(address to, uint256 amount) external onlyAdmin nonReentrant {
         if (to == address(0)) revert InvalidAddress(to);
         if (amount == 0) revert InvalidAmount(amount);
 
-        (bool success, ) = payable(to).call{value: amount}("");
+        (bool success,) = payable(to).call{value: amount}("");
         if (!success) revert UnexpectedFailure("ETH transfer failed");
 
         emit RescueExecuted(address(0), to, amount, block.timestamp);
@@ -927,14 +850,11 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param to Dirección de destino.
      * @param amount Cantidad a transferir.
      */
-    function rescueTokens(address token, address to, uint256 amount)
-        external
-        onlyAdmin
-        nonReentrant
-    {
+    function rescueTokens(address token, address to, uint256 amount) external onlyAdmin nonReentrant {
         if (token == address(USDC)) revert RestrictedAccess();
-        if (tokenRegistry[token].enabled)
+        if (tokenRegistry[token].enabled) {
             revert UnexpectedFailure("Token registrado: no se puede retirar con rescueTokens");
+        }
         if (to == address(0)) revert InvalidAddress(to);
         if (amount == 0) revert InvalidAmount(amount);
 
@@ -946,6 +866,4 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
         emit RescueExecuted(token, to, amount, block.timestamp);
     }
-
-
 }
