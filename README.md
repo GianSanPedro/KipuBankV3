@@ -9,7 +9,7 @@
 **KipuBankV3** es la tercera iteración del sistema bancario descentralizado desarrollado en el marco del módulo **Development Tooling & DeFi**.  
 Representa la transición completa hacia un modelo **DeFi on-chain**, integrando el protocolo **Uniswap V2** para realizar swaps automáticos a **USDC**, eliminando la dependencia de oráculos de precios (Chainlink) utilizada en versiones anteriores.
 
-El contrato permite a los usuarios depositar **ETH o cualquier token ERC20 con par directo en Uniswap V2**, convirtiendo automáticamente esos activos a USDC y registrando el equivalente en sus balances internos.  
+El contrato permite a los usuarios depositar **ETH o cualquier token ERC20 swappeable en Uniswap V2**; si no es USDC, se convierte internamente a USDC usando ruta directa o fallback via WETH y se registra el equivalente en balances internos.
 A su vez, mantiene los principios de **control distribuido, seguridad, modularidad y trazabilidad contable** que caracterizaron a KipuBankV2.
 
 La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional puede evolucionar hacia un modelo **componible, verificable y totalmente autónomo**, utilizando la infraestructura distribuida de Ethereum.
@@ -30,9 +30,9 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 ## ⚙️ **Funcionamiento general del contrato**
 
 1. **Depósitos:**  
-   - El usuario deposita ETH o un token ERC20.  
-   - Si no es USDC, el contrato ejecuta un **swap automático** en Uniswap V2 (`swapExactTokensForTokens` o `swapExactETHForTokens`).  
-   - El resultado del swap (en USDC) se acredita al balance del usuario.  
+   - El usuario deposita ETH o un token ERC20.
+   - Si no es USDC, el contrato ejecuta un **swap automatico** en Uniswap V2 (ruta directa USDC o fallback via WETH).
+   - El resultado del swap (en USDC) se acredita al balance del usuario tras verificar el `bankCap` con el monto convertido.
    - Se emite un evento `DepositMade`.
 
 2. **Retiros:**  
@@ -54,7 +54,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 | Mejora | Descripción | Motivo |
 |---------|--------------|--------|
-| 🔄 **Conversión on-chain mediante Uniswap V2** | Reemplaza el oráculo de Chainlink de V2. Los swaps se ejecutan directamente y los resultados se reciben en USDC. | Reducción de dependencias externas, datos on-chain verificables. |
+| 🔄 **Conversion on-chain mediante Uniswap V2** | Reemplaza el oraculo de Chainlink de V2. Los swaps se ejecutan directamente, con ruta directa a USDC o fallback via WETH si no hay par, y los resultados se reciben en USDC. | Reduccion de dependencias externas, datos on-chain verificables. |
 | 💰 **Contabilidad interna en USDC** | Todo el sistema opera en USDC. | Simplifica la comparación de valores y auditorías. |
 | 🔐 **Control de acceso jerárquico** | Roles diferenciados (`onlyAdmin`, `onlyManager`). | Evita abusos y mejora la gestión operativa. |
 | 🧮 **Registro contable extendido** | Nuevos campos: `totalConvertedUSDC`, `lastUpdateTimestamp`. | Mayor trazabilidad histórica. |
@@ -81,14 +81,13 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 **Contract:** `KipuBankV3`  
 **Network:** Sepolia Testnet  
 **Deployer:** [0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb](https://sepolia.etherscan.io/address/0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb)  
-**Contract Address:** [0xb0B842B5639Be674842003598cB6f80956869775](https://sepolia.etherscan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)  
-**Transaction Hash:** [0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c](https://sepolia.etherscan.io/tx/0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c)
+**Contract Address:** [0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb](https://sepolia.etherscan.io/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)  
+**Transaction Hash:** [0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2](https://sepolia.etherscan.io/tx/0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2)
 
 ### ✅ Verification
-- **Sourcify:** [Verified Source](https://repo.sourcify.dev/contracts/full_match/11155111/0xb0B842B5639Be674842003598cB6f80956869775)
-- **Routescan:** [View on Routescan](https://sepolia.routescan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)
-- **Blockscout:** [View on Blockscout](https://eth-sepolia.blockscout.com/address/0xb0B842B5639Be674842003598cB6f80956869775)
-- **Etherscan:** [View on Etherscan](https://sepolia.etherscan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)
+- **Etherscan:** Verified – [link](https://sepolia.etherscan.io/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)
+- **Routescan:** [View](https://sepolia.routescan.io/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)
+- **Blockscout:** [View](https://eth-sepolia.blockscout.com/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)
 
 ---
 
@@ -148,9 +147,10 @@ echo $env:PRIVATE_KEY
 
 Debido a que el comando de despliegue generaba errores al pasar arrays directamente por consola, se utiliza un archivo de texto plano llamado `args.txt` en la raíz del proyecto.
 
-Ejemplo de contenido de `args.txt`:
+Ejemplo de contenido de `args.txt` (orden actualizado):
 ```text
-0x1C232F01118CB8B424793ae03F870aa7D0ac7f77
+0xUSDC_ADDRESS
+0xUNISWAP_V2_ROUTER
 1000000000000000000000000
 1000000000000000000000
 ["0x6e1ea69318f595fb90e5f1c68670ba53b28614bb"]
@@ -158,10 +158,10 @@ Ejemplo de contenido de `args.txt`:
 ```
 
 Donde:
-- La primera dirección es el **router de Uniswap V2** (por ejemplo, el de Sepolia o uno de test).
-- Los siguientes dos números son los límites globales del banco en unidades de USDC (1e6 = 1 USDC).
+- La primera direccion es el **USDC** de la red destino.
+- La segunda direccion es el **router de Uniswap V2** (por ejemplo, el de Sepolia o uno de test).
+- Los siguientes dos numeros son los limites globales del banco en unidades de USDC (1e6 = 1 USDC).
 - Los dos arrays corresponden a las listas iniciales de `managers` y `auditors`.
-
 ---
 
 ### 🔹 **5. Compilar el contrato**
@@ -191,37 +191,29 @@ Una vez completado, deberías ver una salida similar a:
 
 ```
 Deployer: 0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb
-Deployed to: 0xb0B842B5639Be674842003598cB6f80956869775
-Transaction hash: 0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c
+Deployed to: 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb
+Transaction hash: 0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2
 ```
 
 ---
 
 ### 🔹 **7. Verificación del contrato**
 
-Luego de desplegar, podés verificar automáticamente el código fuente con:
+Luego de desplegar, podés verificar automáticamente el código fuente en Etherscan (usando el mismo `args.txt`):
 
 ```bash
-forge verify-contract 0xb0B842B5639Be674842003598cB6f80956869775 src/Kipu-Bank.sol:KipuBankV3 --chain sepolia --verifier sourcify --watch
-```
-
-Y si querés hacerlo también en Blockscout:
-```bash
-forge verify-contract 0xb0B842B5639Be674842003598cB6f80956869775 src/Kipu-Bank.sol:KipuBankV3 --chain sepolia --verifier blockscout --verifier-url https://eth-sepolia.blockscout.com/api --watch
+forge verify-contract 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb src/Kipu-Bank.sol:KipuBankV3 --chain sepolia --constructor-args-path args.txt --etherscan-api-key $env:ETHERSCAN_API_KEY --watch
 ```
 
 ---
 
 ### ✅ **Resultado esperado**
 
-- Contrato verificado en Sourcify:  
-  [https://repo.sourcify.dev/contracts/full_match/11155111/0xb0B842B5639Be674842003598cB6f80956869775](https://repo.sourcify.dev/contracts/full_match/11155111/0xb0B842B5639Be674842003598cB6f80956869775)
-
-- Dirección del contrato desplegado:  
-  [`0xb0B842B5639Be674842003598cB6f80956869775`](https://sepolia.etherscan.io/address/0xb0B842B5639Be674842003598cB6f80956869775)
+- Contrato verificado en Etherscan:  
+  [`0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb`](https://sepolia.etherscan.io/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)
 
 - Transacción de despliegue:  
-  [`0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c`](https://sepolia.etherscan.io/tx/0x70e64a6b602dd063dca7c0179553afec35b3291cb7c6cd2e5f470de840a0dd6c)
+  [`0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2`](https://sepolia.etherscan.io/tx/0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2)
 
 ---
 
@@ -265,28 +257,28 @@ cast call 0x<banco_address> "hasRole(bytes32,address)(bool)" \
 ## ⚙️ Interacciones con el contrato KipuBankV3
 
 > 📍 **Dirección desplegada:**  
-> `0xb0B842B5639Be674842003598cB6f80956869775`  
+> `0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb`  
 > **Red:** Sepolia Testnet  
-> **Versión Solidity:** 0.8.24  
+> **Version Solidity:** 0.8.20  
 > **Framework:** Foundry
 
 ---
 
-### 🧍‍♂️ 1. Funciones del **Cliente / Usuario común**
+### 🧍‍♂️ 1. Funciones del **Cliente / Usuario comun**
 
 #### 🔹 Lectura (no requieren GAS)
 ```bash
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "totalDeposits()(uint256)"
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "userBalances(address)(uint256)" 0x<tu_wallet>
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "userDeposits(address,address)(uint256,uint256,uint256)" 0x<tu_wallet> 0x<token_address>
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "withdrawLimit()(uint256)"
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "supportedTokens(address)(bool)" 0x<token_address>
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "accounting()(uint256,uint256,uint256,uint256,uint256)"
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userUSDCBalance(address)(uint256)" 0x<tu_wallet>
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userDeposits(address,address)(uint256,uint256,uint256)" 0x<tu_wallet> 0x<token_address>
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "withdrawLimit()(uint256)"
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
 ```
 
 #### 🔹 Escritura (requieren GAS)
 ```bash
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "deposit(address,uint256)" 0x<token_address> 1000000000000000000 --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "withdraw(uint256)" 100000000 --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "deposit(address,uint256)" 0x<token_address> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "withdraw(uint256)" 100000000 --private-key $PRIVATE_KEY
 ```
 
 ---
@@ -295,18 +287,12 @@ cast send 0xb0B842B5639Be674842003598cB6f80956869775 "withdraw(uint256)" 1000000
 
 #### 🔹 Escritura
 ```bash
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "toggleToken(address,bool)" 0x<token_address> true --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "setLimits(uint256,uint256)" 1000000000000000000000000 1000000000000000000000 --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "setUniswapRouter(address)" 0x<router_address> --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "pause()" --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "unpause()" --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "emergencyWithdraw(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "swapTokens(address,address,uint256)" 0x<token_in> 0x<token_out> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "pause()" --private-key $PRIVATE_KEY
 ```
 
 #### 🔹 Lectura
 ```bash
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
 ```
 
 ---
@@ -315,8 +301,9 @@ cast call 0xb0B842B5639Be674842003598cB6f80956869775 "tokenRegistry(address)(boo
 
 #### 🔹 Lectura (no requieren GAS)
 ```bash
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "totalDeposits()(uint256)"
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "accounting()(uint256,uint256,uint256,uint256,uint256)"
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userUSDCBalance(address)(uint256)" 0x<usuario>
 ```
 
 ---
@@ -325,17 +312,28 @@ cast call 0xb0B842B5639Be674842003598cB6f80956869775 "tokenRegistry(address)(boo
 
 #### 🔹 Gestión de roles
 ```bash
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "grantRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "revokeRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
-cast call 0xb0B842B5639Be674842003598cB6f80956869775 "hasRole(bytes32,address)(bool)" 0x<ROLE_HASH> 0x<account>
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "grantRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "revokeRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "hasRole(bytes32,address)(bool)" 0x<ROLE_HASH> 0x<account>
 ```
 
 #### 🔹 Seguridad y administración
 ```bash
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "transferOwnership(address)" 0x<nuevo_owner> --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "renounceOwnership()" --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "rescueETH(address,uint256)" 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
-cast send 0xb0B842B5639Be674842003598cB6f80956869775 "rescueTokens(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "transferOwnership(address)" 0x<nuevo_owner> --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "renounceOwnership()" --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "rescueETH(address,uint256)" 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "rescueTokens(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+```
+
+#### 🔹 Configuracion y limites
+```bash
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "setLimits(uint256,uint256)" 1000000000000000000000000 1000000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "toggleToken(address,bool)" 0x<token_address> true --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "setUniswapRouter(address)" 0x<router_address> --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "addManager(address)" 0x<nuevo_manager> --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "addAuditor(address)" 0x<nuevo_auditor> --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "unpause()" --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "emergencyWithdraw(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
 ```
 
 ---
@@ -370,10 +368,19 @@ Conserva la arquitectura modular, la seguridad basada en roles y la trazabilidad
 
 ## ⚙️ 2. Correctitud funcional
 
-| Aspecto | Descripción |
+| Aspecto | Descripcion |
 |----------|--------------|
+| **Depositos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automatico (ruta directa o via WETH) y se acredita el USDC resultante. |
+| **Integracion con Uniswap V2** | El contrato mantiene referencias directas a `IUniswapV2Router02`, `IUniswapV2Factory` y `WETH`. Construye la ruta (par directo a USDC o fallback via WETH) y calcula `amountOutMin` con `getAmountsOut()` para controlar el slippage. |
+| **Limites globales y personales** | Se aplican los limites `bankCap` (maximo global de fondos) y `withdrawLimit` (maximo por usuario), descontando `accounting.totalDepositsUSDC` al retirar para liberar capacidad. |
+| **Contabilidad integral** | Se actualizan continuamente los montos de depositos, retiros y swaps ejecutados, reflejados en `BankAccounting`. |
+| **Pausable y emergencias** | Implementa el patron *Circuit Breaker* (`pause()` / `unpause()`) y funciones de rescate seguras. |
+| **Eventos y trazabilidad** | Cada operacion emite eventos (`DepositMade`, `WithdrawalMade`, `SwapExecuted`, `LimitsUpdated`, etc.), lo que permite auditoria on-chain en exploradores como Etherscan y Tenderly. |
+
+---
+-------|--------------|
 | **Depósitos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automático mediante `IUniswapV2Router02`. |
-| **Integración con Uniswap V2** | El contrato mantiene referencias directas a `IUniswapV2Router02`, `IUniswapV2Factory` y `WETH`. Antes de cada swap, se valida la existencia del par (`getPair`) y se calcula el `amountOutMin` con `getAmountsOut()` para controlar el slippage. |
+| **Integracion con Uniswap V2** | El contrato mantiene referencias directas a `IUniswapV2Router02`, `IUniswapV2Factory` y `WETH`. Construye la ruta (par directo a USDC o fallback via WETH) y calcula `amountOutMin` con `getAmountsOut()` para controlar el slippage. |
 | **Límites globales y personales** | Se aplican los límites `bankCap` (máximo global de fondos) y `withdrawLimit` (máximo por usuario). |
 | **Contabilidad integral** | Se actualizan continuamente los montos de depósitos, retiros y swaps ejecutados, reflejados en `BankAccounting`. |
 | **Pausable y emergencias** | Implementa el patrón *Circuit Breaker* (`pause()` / `unpause()`) y funciones de rescate seguras. |
@@ -421,4 +428,3 @@ Durante el desarrollo de **KipuBankV3** se aplicaron los conceptos clave del mó
 
 **KipuBankV3** materializa el paso definitivo hacia un sistema financiero **totalmente descentralizado, seguro y auditable**.  
 El contrato implementa una arquitectura profesional basada en principios de los sistemas distribuidos, integrando protocolos reales (Uniswap V2) y buenas prácticas de desarrollo Web3, cumpliendo todos los objetivos del **TP4 – Development Tooling & DeFi**.
-

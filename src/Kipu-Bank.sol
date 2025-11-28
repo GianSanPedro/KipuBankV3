@@ -286,6 +286,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
     /**
      * @notice Constructor del contrato principal KipuBankV3.
      * @dev Inicializa la integración con Uniswap V2 y define los límites globales del banco.
+     * @param _USDC Direccion del token USDC de referencia.
      * @param _uniswapRouter Dirección del router de Uniswap V2 utilizado para swaps.
      * @param _bankCapUSDC Límite total de depósitos permitidos en el banco (en USDC).
      * @param _withdrawLimitUSDC Límite máximo de retiro por usuario (en USDC).
@@ -293,6 +294,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param _auditors Lista inicial de cuentas con rol de AUDITOR_ROLE.
      */
     constructor(
+        address _USDC,
         address _uniswapRouter,
         uint256 _bankCapUSDC,
         uint256 _withdrawLimitUSDC,
@@ -300,10 +302,13 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         address[] memory _auditors
     ) Ownable(msg.sender) {
         // --- Validaciones iniciales ---
+        if (_USDC == address(0)) revert InvalidAddress(_USDC);
         if (_uniswapRouter == address(0)) revert InvalidAddress(_uniswapRouter);
         if (_bankCapUSDC == 0 || _withdrawLimitUSDC == 0) {
             revert InvalidAmount(_bankCapUSDC > 0 ? _withdrawLimitUSDC : _bankCapUSDC);
         }
+
+        USDC = _USDC;
 
         // --- Configuración de Uniswap V2 (modo seguro para testnet) ---
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
@@ -374,14 +379,8 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         // --- Depósito en token ERC20 ---
         else {
             if (amount == 0) revert InvalidAmount(amount);
-            if (!tokenRegistry[token].enabled) revert UnsupportedToken(token);
+            if (token != address(USDC) && !tokenRegistry[token].enabled) revert UnsupportedToken(token);
             SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount);
-        }
-
-        // --- Validar que exista par directo con USDC ---
-        if (token != address(0) && token != address(USDC)) {
-            address pair = uniswapFactory.getPair(token, address(USDC));
-            if (pair == address(0)) revert NoUSDCpair(token);
         }
 
         // --- Ejecutar swap a USDC ---
@@ -424,6 +423,8 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         }
 
         // --- Actualizar contabilidad ---
+        if (accounting.totalDepositsUSDC < amountUSDC) revert UnexpectedFailure("Accounting underflow");
+        accounting.totalDepositsUSDC -= amountUSDC;
         userUSDCBalance[msg.sender] -= amountUSDC;
         accounting.totalWithdrawalsUSDC += amountUSDC;
         accounting.lastUpdateTimestamp = block.timestamp;
@@ -447,43 +448,50 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
             return amount;
         }
 
-        address[] memory path = new address[](3);
-        uint256[] memory amountsOut;
-
-        // --- Swap ETH → USDC ---
+        // --- Swap ETH -> USDC ---
         if (fromToken == address(0)) {
-            path[0] = WETH;
-            path[1] = address(USDC);
+            if (WETH == address(0)) revert NoUSDCpair(fromToken);
 
-            // Obtener cotización y definir slippage 5%
-            amountsOut = uniswapRouter.getAmountsOut(amount, path);
-            uint256 amountOutMin = (amountsOut[1] * 95) / 100;
+            address[] memory pathEth = new address[](2);
+            pathEth[0] = WETH;
+            pathEth[1] = address(USDC);
 
-            uint256[] memory amounts =
-                uniswapRouter.swapExactETHForTokens{value: amount}(amountOutMin, path, address(this), block.timestamp);
-            amountOut = amounts[1];
+            uint256[] memory amountsOutEth = uniswapRouter.getAmountsOut(amount, pathEth);
+            if (amountsOutEth.length < 2) revert UnexpectedFailure('Uniswap: ruta de conversion invalida');
+            uint256 amountOutMinEth = (amountsOutEth[1] * 95) / 100;
+
+            uint256[] memory amountsEth = uniswapRouter.swapExactETHForTokens{value: amount}(
+                amountOutMinEth, pathEth, address(this), block.timestamp
+            );
+            amountOut = amountsEth[1];
+
+            if (amountOut < amountOutMinEth) {
+                revert SlippageExceeded(amountOutMinEth, amountOut);
+            }
+
+            emit SwapExecuted(fromToken, address(USDC), amount, amountOut);
+            return amountOut;
         }
-        // --- Swap ERC20 → USDC ---
-        else {
-            IERC20(fromToken).approve(address(uniswapRouter), amount);
 
-            path[0] = fromToken;
-            path[1] = address(USDC);
+        // --- Swap ERC20 -> USDC (con fallback via WETH) ---
+        address[] memory path = _buildERC20ToUSDCPath(fromToken);
 
-            amountsOut = uniswapRouter.getAmountsOut(amount, path);
-            uint256 amountOutMin = (amountsOut[1] * 95) / 100;
+        IERC20(fromToken).approve(address(uniswapRouter), 0);
+        IERC20(fromToken).approve(address(uniswapRouter), amount);
 
-            uint256[] memory amounts =
-                uniswapRouter.swapExactTokensForTokens(amount, amountOutMin, path, address(this), block.timestamp);
-            amountOut = amounts[1];
+        uint256[] memory amountsOut = uniswapRouter.getAmountsOut(amount, path);
+        if (amountsOut.length < 2) revert UnexpectedFailure('Uniswap: ruta de conversion invalida');
+        uint256 amountOutMin = (amountsOut[amountsOut.length - 1] * 95) / 100;
 
-            // Revocar aprobación para evitar exploits
-            IERC20(fromToken).approve(address(uniswapRouter), 0);
-        }
+        uint256[] memory amounts =
+            uniswapRouter.swapExactTokensForTokens(amount, amountOutMin, path, address(this), block.timestamp);
+        amountOut = amounts[amounts.length - 1];
+
+        IERC20(fromToken).approve(address(uniswapRouter), 0);
 
         // --- Validar slippage real ---
-        if (amountOut < (amountsOut[1] * 95) / 100) {
-            revert SlippageExceeded(amountsOut[1], amountOut);
+        if (amountOut < amountOutMin) {
+            revert SlippageExceeded(amountOutMin, amountOut);
         }
 
         emit SwapExecuted(fromToken, address(USDC), amount, amountOut);
@@ -592,37 +600,31 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param amount Cantidad a convertir.
      * @return estimatedUSDC Monto estimado en USDC que se obtendría en un swap real.
      */
-    function estimateUSDCValue(address token, uint256 amount) public view returns (uint256 estimatedUSDC) {
+        function estimateUSDCValue(address token, uint256 amount) public view returns (uint256 estimatedUSDC) {
         if (amount == 0) revert InvalidAmount(amount);
         if (token == address(USDC)) return amount;
 
-        // --- Determinar ruta de conversión ---
-        address[] memory path = new address[](3);
+        address[] memory path;
 
-        // Conversión desde ETH nativo (address(0))
         if (token == address(0)) {
+            if (WETH == address(0)) revert NoUSDCpair(token);
+
+            path = new address[](2);
             path[0] = WETH;
             path[1] = address(USDC);
         } else {
-            if (!tokenRegistry[token].enabled) revert UnsupportedToken(token);
-
-            // Verificar existencia de par directo en Uniswap
-            address pair = uniswapFactory.getPair(token, address(USDC));
-            if (pair == address(0)) revert NoUSDCpair(token);
-
-            path[0] = token;
-            path[1] = address(USDC);
+            if (token != address(USDC) && !tokenRegistry[token].enabled) revert UnsupportedToken(token);
+            path = _buildERC20ToUSDCPath(token);
         }
 
-        // --- Consultar cotización en Uniswap ---
         try uniswapRouter.getAmountsOut(amount, path) returns (uint256[] memory amountsOut) {
-            if (amountsOut.length < 2 || amountsOut[1] == 0) {
-                revert UnexpectedFailure("Uniswap: ruta de conversion invalida");
+            if (amountsOut.length != path.length || amountsOut[amountsOut.length - 1] == 0) {
+                revert UnexpectedFailure('Uniswap: ruta de conversion invalida');
             }
 
-            estimatedUSDC = amountsOut[1];
+            estimatedUSDC = amountsOut[amountsOut.length - 1];
         } catch {
-            revert UnexpectedFailure("Uniswap: error al obtener cotizacion");
+            revert UnexpectedFailure('Uniswap: error al obtener cotizacion');
         }
     }
 
@@ -748,6 +750,40 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         if (token == address(USDC)) return; // USDC siempre válido
         address pair = uniswapFactory.getPair(token, address(USDC));
         if (pair == address(0)) revert NoUSDCpair(token);
+    }
+
+    /**
+     * @dev Construye la ruta de swap hacia USDC, usando par directo o fallback via WETH.
+     * @param token Token de origen.
+     * @return path Ruta de intercambio para Uniswap V2.
+     */
+    function _buildERC20ToUSDCPath(address token) internal view returns (address[] memory path) {
+        address directPair = address(uniswapFactory) != address(0)
+            ? uniswapFactory.getPair(token, address(USDC))
+            : address(0);
+
+        if (directPair != address(0)) {
+            path = new address[](2);
+            path[0] = token;
+            path[1] = address(USDC);
+            return path;
+        }
+
+        if (WETH == address(0)) revert NoUSDCpair(token);
+
+        address pairToWeth = address(uniswapFactory) != address(0)
+            ? uniswapFactory.getPair(token, WETH)
+            : address(0);
+        address pairWethUsdc = address(uniswapFactory) != address(0)
+            ? uniswapFactory.getPair(WETH, address(USDC))
+            : address(0);
+
+        if (pairToWeth == address(0) || pairWethUsdc == address(0)) revert NoUSDCpair(token);
+
+        path = new address[](3);
+        path[0] = token;
+        path[1] = WETH;
+        path[2] = address(USDC);
     }
 
     /**
