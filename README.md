@@ -18,12 +18,12 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ## 🧩 **Roles y funciones**
 
-| Rol | Descripción | Permisos principales |
-|------|--------------|----------------------|
-| **Owner / Admin** | Control total sobre parámetros globales del contrato. | `setLimits`, `setUniswapRouter`, `addManager`, `addAuditor`, `pause`, `unpause`, `emergencyWithdraw`, `rescueETH`, `rescueTokens`. |
+| Rol | Descripcion | Permisos principales |
+|------|------------|----------------------|
+| **Owner / Admin** | Control total sobre parametros globales del contrato. | `setLimits`, `setWithdrawCooldown`, `setUniswapRouter`, `addManager`, `addAuditor`, `pause`, `unpause`, `emergencyWithdraw`, `rescueETH`, `rescueTokens`. |
 | **Manager** | Operador que puede pausar la operatividad del sistema en emergencias. | `pause()` |
 | **Auditor** | Observador con acceso a datos contables del banco. | Lectura de estado on-chain. |
-| **Usuario** | Cualquier dirección que interactúa con el banco. | `deposit`, `withdraw`. |
+| **Usuario** | Cualquier direccion que interactua con el banco. | `deposit`, `withdraw`. |
 
 ---
 
@@ -36,11 +36,11 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
    - Se emite un evento `DepositMade`.
 
 2. **Retiros:**  
-   - Los usuarios pueden retirar su saldo en USDC dentro del límite establecido (`withdrawLimit`).  
-   - La operación se registra contablemente y emite `WithdrawalMade`.
+   - Los usuarios pueden retirar su saldo en USDC dentro del limite establecido (`withdrawLimit`) y respetando un cooldown opcional (`withdrawCooldown`) si se configura.
+   - La operacion se registra contablemente y emite `WithdrawalMade`.
 
 3. **Administración:**  
-   - Los administradores pueden modificar los límites globales (`setLimits`), registrar nuevos tokens (`toggleToken`), actualizar el router (`setUniswapRouter`) y manejar roles.  
+   - Los administradores pueden modificar los limites globales (`setLimits`), configurar cooldown de retiros (`setWithdrawCooldown`), registrar nuevos tokens (`toggleToken`), actualizar el router (`setUniswapRouter`) y manejar roles.
 
 4. **Emergencias:**  
    - En caso de fallos, el sistema puede pausarse (`pause`) y los fondos pueden rescatarse manualmente (`rescueETH` o `rescueTokens`).
@@ -61,6 +61,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 | 🧰 **Sistema pausable y funciones de rescate seguras** | Patrón `Circuit Breaker`. | Minimiza riesgo ante fallos o ataques. |
 | ⚙️ **Slippage controlado (5%)** | Usa `getAmountsOut()` para calcular `amountOutMin`. | Protege de pérdidas en swaps. |
 | 🧾 **Eventos exhaustivos** | Cada función crítica emite eventos (`DepositMade`, `SwapExecuted`, `EmergencyWithdrawal`). | Auditoría completa. |
+| **Cooldown configurable de retiros** | `withdrawCooldown` permite espaciar retiros por usuario. | Reduce velocidad de fuga ante compromiso de clave; agrega friccion si se usa. |
 
 ---
 
@@ -272,6 +273,7 @@ cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "accounting()(uint256,uint2
 cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userUSDCBalance(address)(uint256)" 0x<tu_wallet>
 cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userDeposits(address,address)(uint256,uint256,uint256)" 0x<tu_wallet> 0x<token_address>
 cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "withdrawLimit()(uint256)"
+cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "withdrawCooldown()(uint256)"
 cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
 ```
 
@@ -328,6 +330,7 @@ cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "rescueTokens(address,addre
 #### 🔹 Configuracion y limites
 ```bash
 cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "setLimits(uint256,uint256)" 1000000000000000000000000 1000000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "setWithdrawCooldown(uint256)" 86400 --private-key $PRIVATE_KEY
 cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "toggleToken(address,bool)" 0x<token_address> true --private-key $PRIVATE_KEY
 cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "setUniswapRouter(address)" 0x<router_address> --private-key $PRIVATE_KEY
 cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "addManager(address)" 0x<nuevo_manager> --private-key $PRIVATE_KEY
@@ -346,6 +349,7 @@ cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "emergencyWithdraw(address,
 | `WithdrawalMade(user, token, amountUSDC)` | Al retirar fondos |
 | `TokenStatusChanged(token, enabled)` | Al activar/desactivar un token |
 | `LimitsUpdated(newBankCap, newWithdrawLimit)` | Al modificar límites |
+| `WithdrawCooldownUpdated(newCooldown)` | Al configurar el cooldown entre retiros |
 | `SwapExecuted(fromToken, toToken, amountIn, amountOut)` | Al hacer un swap |
 | `ContractPaused(by, timestamp)` / `ContractResumed(by, timestamp)` | Al pausar o reanudar |
 | `RoleGranted(role, account, sender)` / `RoleRevoked(role, account, sender)` | Cambios de roles |
@@ -428,3 +432,6 @@ Durante el desarrollo de **KipuBankV3** se aplicaron los conceptos clave del mó
 
 **KipuBankV3** materializa el paso definitivo hacia un sistema financiero **totalmente descentralizado, seguro y auditable**.  
 El contrato implementa una arquitectura profesional basada en principios de los sistemas distribuidos, integrando protocolos reales (Uniswap V2) y buenas prácticas de desarrollo Web3, cumpliendo todos los objetivos del **TP4 – Development Tooling & DeFi**.
+
+
+
