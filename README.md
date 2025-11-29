@@ -82,13 +82,13 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 **Contract:** `KipuBankV3`  
 **Network:** Sepolia Testnet  
 **Deployer:** [0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb](https://sepolia.etherscan.io/address/0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb)  
-**Contract Address:** [0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb](https://sepolia.etherscan.io/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)  
-**Transaction Hash:** [0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2](https://sepolia.etherscan.io/tx/0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2)
+**Contract Address:** [0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545](https://sepolia.etherscan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)  
+**Transaction Hash:** [0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c](https://sepolia.etherscan.io/tx/0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c)
 
 ### ✅ Verification
-- **Etherscan:** Verified – [link](https://sepolia.etherscan.io/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)
-- **Routescan:** [View](https://sepolia.routescan.io/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)
-- **Blockscout:** [View](https://eth-sepolia.blockscout.com/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)
+- **Etherscan:** Verified – [link](https://sepolia.etherscan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
+- **Routescan:** [View](https://sepolia.routescan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
+- **Blockscout:** [View](https://eth-sepolia.blockscout.com/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 
 ---
 
@@ -192,8 +192,8 @@ Una vez completado, deberías ver una salida similar a:
 
 ```
 Deployer: 0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb
-Deployed to: 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb
-Transaction hash: 0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2
+Deployed to: 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545
+Transaction hash: 0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c
 ```
 
 ---
@@ -203,7 +203,7 @@ Transaction hash: 0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead9
 Luego de desplegar, podés verificar automáticamente el código fuente en Etherscan (usando el mismo `args.txt`):
 
 ```bash
-forge verify-contract 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb src/Kipu-Bank.sol:KipuBankV3 --chain sepolia --constructor-args-path args.txt --etherscan-api-key $env:ETHERSCAN_API_KEY --watch
+forge verify-contract 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 src/Kipu-Bank.sol:KipuBankV3 --chain sepolia --constructor-args-path args.txt --etherscan-api-key $env:ETHERSCAN_API_KEY --watch
 ```
 
 ---
@@ -211,10 +211,10 @@ forge verify-contract 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb src/Kipu-Bank.s
 ### ✅ **Resultado esperado**
 
 - Contrato verificado en Etherscan:  
-  [`0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb`](https://sepolia.etherscan.io/address/0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb)
+  [`0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545`](https://sepolia.etherscan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 
 - Transacción de despliegue:  
-  [`0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2`](https://sepolia.etherscan.io/tx/0x7c4532e9e5370527630183644ffa742bbea5734d50236b09d87074d6ead968d2)
+  [`0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c`](https://sepolia.etherscan.io/tx/0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c)
 
 ---
 
@@ -258,7 +258,7 @@ cast call 0x<banco_address> "hasRole(bytes32,address)(bool)" \
 ## ⚙️ Interacciones con el contrato KipuBankV3
 
 > 📍 **Dirección desplegada:**  
-> `0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb`  
+> `0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545`  
 > **Red:** Sepolia Testnet  
 > **Version Solidity:** 0.8.20  
 > **Framework:** Foundry
@@ -269,18 +269,18 @@ cast call 0x<banco_address> "hasRole(bytes32,address)(bool)" \
 
 #### 🔹 Lectura (no requieren GAS)
 ```bash
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "accounting()(uint256,uint256,uint256,uint256,uint256)"
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userUSDCBalance(address)(uint256)" 0x<tu_wallet>
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userDeposits(address,address)(uint256,uint256,uint256)" 0x<tu_wallet> 0x<token_address>
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "withdrawLimit()(uint256)"
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "withdrawCooldown()(uint256)"
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "accounting()(uint256,uint256,uint256,uint256,uint256)"
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "userUSDCBalance(address)(uint256)" 0x<tu_wallet>
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "userDeposits(address,address)(uint256,uint256,uint256)" 0x<tu_wallet> 0x<token_address>
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "withdrawLimit()(uint256)"
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "withdrawCooldown()(uint256)"
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
 ```
 
 #### 🔹 Escritura (requieren GAS)
 ```bash
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "deposit(address,uint256)" 0x<token_address> 1000000000000000000 --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "withdraw(uint256)" 100000000 --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "deposit(address,uint256)" 0x<token_address> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "withdraw(uint256)" 100000000 --private-key $PRIVATE_KEY
 ```
 
 ---
@@ -289,12 +289,12 @@ cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "withdraw(uint256)" 1000000
 
 #### 🔹 Escritura
 ```bash
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "pause()" --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "pause()" --private-key $PRIVATE_KEY
 ```
 
 #### 🔹 Lectura
 ```bash
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
 ```
 
 ---
@@ -303,9 +303,9 @@ cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "tokenRegistry(address)(boo
 
 #### 🔹 Lectura (no requieren GAS)
 ```bash
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "accounting()(uint256,uint256,uint256,uint256,uint256)"
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userUSDCBalance(address)(uint256)" 0x<usuario>
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "accounting()(uint256,uint256,uint256,uint256,uint256)"
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "userUSDCBalance(address)(uint256)" 0x<usuario>
 ```
 
 ---
@@ -314,29 +314,29 @@ cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "userUSDCBalance(address)(u
 
 #### 🔹 Gestión de roles
 ```bash
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "grantRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "revokeRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
-cast call 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "hasRole(bytes32,address)(bool)" 0x<ROLE_HASH> 0x<account>
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "grantRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "revokeRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
+cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "hasRole(bytes32,address)(bool)" 0x<ROLE_HASH> 0x<account>
 ```
 
 #### 🔹 Seguridad y administración
 ```bash
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "transferOwnership(address)" 0x<nuevo_owner> --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "renounceOwnership()" --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "rescueETH(address,uint256)" 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "rescueTokens(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "transferOwnership(address)" 0x<nuevo_owner> --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "renounceOwnership()" --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "rescueETH(address,uint256)" 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "rescueTokens(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
 ```
 
 #### 🔹 Configuracion y limites
 ```bash
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "setLimits(uint256,uint256)" 1000000000000000000000000 1000000000000000000000 --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "setWithdrawCooldown(uint256)" 86400 --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "toggleToken(address,bool)" 0x<token_address> true --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "setUniswapRouter(address)" 0x<router_address> --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "addManager(address)" 0x<nuevo_manager> --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "addAuditor(address)" 0x<nuevo_auditor> --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "unpause()" --private-key $PRIVATE_KEY
-cast send 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb "emergencyWithdraw(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "setLimits(uint256,uint256)" 1000000000000000000000000 1000000000000000000000 --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "setWithdrawCooldown(uint256)" 86400 --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "toggleToken(address,bool)" 0x<token_address> true --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "setUniswapRouter(address)" 0x<router_address> --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "addManager(address)" 0x<nuevo_manager> --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "addAuditor(address)" 0x<nuevo_auditor> --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "unpause()" --private-key $PRIVATE_KEY
+cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "emergencyWithdraw(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
 ```
 
 ---
@@ -432,6 +432,8 @@ Durante el desarrollo de **KipuBankV3** se aplicaron los conceptos clave del mó
 
 **KipuBankV3** materializa el paso definitivo hacia un sistema financiero **totalmente descentralizado, seguro y auditable**.  
 El contrato implementa una arquitectura profesional basada en principios de los sistemas distribuidos, integrando protocolos reales (Uniswap V2) y buenas prácticas de desarrollo Web3, cumpliendo todos los objetivos del **TP4 – Development Tooling & DeFi**.
+
+
 
 
 

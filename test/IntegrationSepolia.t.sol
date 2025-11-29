@@ -12,7 +12,7 @@ interface IKipuBank {
 
 contract IntegrationSepolia is Test {
     // Direcciones de despliegue en Sepolia (router con WETH/USDC y contrato ya verificado)
-    address internal constant BANK = 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb;
+    address internal constant BANK = 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545;
     address internal constant USDC = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238;
     address internal constant ROUTER = 0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3;
 

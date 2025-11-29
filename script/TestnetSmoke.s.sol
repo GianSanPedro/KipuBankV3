@@ -11,7 +11,7 @@ interface IKipuBank {
 
 contract TestnetSmoke is Script {
     // Dirección del contrato desplegado en Sepolia
-    address constant BANK = 0xDD5e27C52C431f14250c7c09b8c699A2cdBD5dFb;
+    address constant BANK = 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545;
     // Depósito en ETH que usaremos para la prueba (0.001 ETH)
     uint256 constant DEPOSIT_ETH = 1e15;
 
@@ -34,3 +34,4 @@ contract TestnetSmoke is Script {
         vm.stopBroadcast();
     }
 }
+
