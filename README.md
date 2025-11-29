@@ -1,3 +1,14 @@
+  | Aspecto | Descripcion |
+  |----------|--------------|
+  | **Depositos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automatico (ruta directa o via WETH) y se acredita el USDC resultante. |
+  | **Integracion con Uniswap V2** | El contrato mantiene referencias directas a IUniswapV2Router02, IUniswapV2Factory y WETH. Construye la ruta (par directo a USDC o fallback via WETH) y calcula amountOutMin con getAmountsOut() para controlar el slippage. |
+  | **Limites globales y personales** | Se aplican los limites bankCap (maximo global de fondos) y withdrawLimit (maximo por usuario), descontando accounting.totalDepositsUSDC al retirar para liberar capacidad. |
+  | **Contabilidad integral** | Se actualizan continuamente los montos de depositos, retiros y swaps ejecutados, reflejados en BankAccounting. |
+  | **Pausable y emergencias** | Implementa el patron *Circuit Breaker* (pause() / unpause()) y funciones de rescate seguras. |
+  | **Eventos y trazabilidad** | Cada operacion emite eventos (DepositMade, WithdrawalMade, SwapExecuted, LimitsUpdated, etc.), lo que permite auditoria on-chain en exploradores como Etherscan y Tenderly. |
+  
+  ---
+
 # 🏦 **KipuBank V3 – Contrato Bancario Descentralizado (DeFi)**
 ### Curso: *Sistemas Distribuidos – Módulo 4: Development Tooling & DeFi*
 ### Autor: **Gianfranco San Pedro**
@@ -382,15 +393,6 @@ Conserva la arquitectura modular, la seguridad basada en roles y la trazabilidad
 | **Eventos y trazabilidad** | Cada operacion emite eventos (`DepositMade`, `WithdrawalMade`, `SwapExecuted`, `LimitsUpdated`, etc.), lo que permite auditoria on-chain en exploradores como Etherscan y Tenderly. |
 
 ---
--------|--------------|
-| **Depósitos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automático mediante `IUniswapV2Router02`. |
-| **Integracion con Uniswap V2** | El contrato mantiene referencias directas a `IUniswapV2Router02`, `IUniswapV2Factory` y `WETH`. Construye la ruta (par directo a USDC o fallback via WETH) y calcula `amountOutMin` con `getAmountsOut()` para controlar el slippage. |
-| **Límites globales y personales** | Se aplican los límites `bankCap` (máximo global de fondos) y `withdrawLimit` (máximo por usuario). |
-| **Contabilidad integral** | Se actualizan continuamente los montos de depósitos, retiros y swaps ejecutados, reflejados en `BankAccounting`. |
-| **Pausable y emergencias** | Implementa el patrón *Circuit Breaker* (`pause()` / `unpause()`) y funciones de rescate seguras. |
-| **Eventos y trazabilidad** | Cada operación emite eventos (`DepositMade`, `WithdrawalMade`, `SwapExecuted`, `LimitsUpdated`, etc.), lo que permite auditoría on-chain en exploradores como Etherscan y Tenderly. |
-
----
 
 ## 🔒 3. Seguridad, control de acceso y eficiencia en gas
 
@@ -432,6 +434,7 @@ Durante el desarrollo de **KipuBankV3** se aplicaron los conceptos clave del mó
 
 **KipuBankV3** materializa el paso definitivo hacia un sistema financiero **totalmente descentralizado, seguro y auditable**.  
 El contrato implementa una arquitectura profesional basada en principios de los sistemas distribuidos, integrando protocolos reales (Uniswap V2) y buenas prácticas de desarrollo Web3, cumpliendo todos los objetivos del **TP4 – Development Tooling & DeFi**.
+
 
 
 
