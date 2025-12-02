@@ -1,38 +1,48 @@
+| Aspecto | Descripción |
+|----------|--------------|
+| **Depósitos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automático (ruta directa o vía WETH) y se acredita el USDC resultante. |
+| **Integración con Uniswap V2** | El contrato mantiene referencias directas a IUniswapV2Router02, IUniswapV2Factory y WETH. Construye la ruta (par directo a USDC o fallback vía WETH) y calcula amountOutMin con getAmountsOut() para controlar el slippage. |
+| **Límites globales y personales** | Se aplican los límites bankCap (máximo global de fondos) y withdrawLimit (máximo por usuario), descontando accounting.totalDepositsUSDC al retirar para liberar capacidad. |
+| **Contabilidad integral** | Se actualizan continuamente los montos de depósitos, retiros y swaps ejecutados, reflejados en BankAccounting. |
+| **Pausable y emergencias** | Implementa el patrón *Circuit Breaker* (pause() / unpause()) y funciones de rescate seguras. |
+| **Eventos y trazabilidad** | Cada operación emite eventos (DepositMade, WithdrawalMade, SwapExecuted, LimitsUpdated, etc.), lo que permite auditoría on-chain en exploradores como Etherscan y Tenderly. |
 
-# ¿Qué es **KipuBank V3 — Contrato Bancario Descentralizado (DeFi)** 
+---
+
+# 🏦 ¿Qué es **KipuBank V3 — Contrato Bancario Descentralizado (DeFi)**
 ### Curso: *Sistemas Distribuidos — Módulo 4: Development Tooling & DeFi*
 ### Autor: **Gianfranco San Pedro**
 
 ---
 
-## **Presentación general**
+## 🚀 **Presentación general**
 
 **KipuBankV3** es la tercera iteración del sistema bancario descentralizado desarrollado en el marco del módulo **Development Tooling & DeFi**.  
 Representa la transición completa hacia un modelo **DeFi on-chain**, integrando el protocolo **Uniswap V2** para realizar swaps automáticos a **USDC**, eliminando la dependencia de oráculos de precios (Chainlink) utilizada en versiones anteriores.
 
-El contrato permite a los usuarios depositar **ETH o cualquier token ERC20 swappeable en Uniswap V2**; si no es USDC, se convierte internamente a USDC usando ruta directa o fallback via WETH y se registra el equivalente en balances internos.  
+El contrato permite a los usuarios depositar **ETH o cualquier token ERC20 swappeable en Uniswap V2**; si no es USDC, se convierte internamente a USDC usando ruta directa o fallback vía WETH y se registra el equivalente en balances internos.  
 A su vez, mantiene los principios de **control distribuido, seguridad, modularidad y trazabilidad contable** que caracterizaron a KipuBankV2.
 
 La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional puede evolucionar hacia un modelo **componible, verificable y totalmente autónomo**, utilizando la infraestructura distribuida de Ethereum.
 
 ---
 
-## **Roles y funciones**
+## 🛡️ **Roles y funciones**
 
-| Rol | Descripcion | Permisos principales |
+| Rol | Descripción | Permisos principales |
 |------|------------|----------------------|
-| **Owner / Admin** | Control total sobre parametros globales del contrato. | `setLimits`, `setWithdrawCooldown`, `setUniswapRouter`, `addManager`, `addAuditor`, `pause`, `unpause`, `emergencyWithdraw`, `rescueETH`, `rescueTokens`. |
+| **Owner / Admin** | Control total sobre parámetros globales del contrato. | `setLimits`, `setWithdrawCooldown`, `setUniswapRouter`, `addManager`, `addAuditor`, `pause`, `unpause`, `emergencyWithdraw`, `rescueETH`, `rescueTokens`. |
 | **Manager** | Operador que puede pausar la operatividad del sistema en emergencias. | `pause()` |
 | **Auditor** | Observador con acceso a datos contables del banco. | Lectura de estado on-chain. |
-| **Usuario** | Cualquier direccion que interactua con el banco. | `deposit`, `withdraw`. |
+| **Usuario** | Cualquier dirección que interactúa con el banco. | `deposit`, `withdraw`. |
 
 ---
 
-## **Funcionamiento general del contrato**
+## ⚙️ **Funcionamiento general del contrato**
 
 1. **Depósitos:**  
    - El usuario deposita ETH o un token ERC20.  
-   - Si no es USDC, el contrato ejecuta un **swap automático** en Uniswap V2 (ruta directa USDC o fallback via WETH).  
+   - Si no es USDC, el contrato ejecuta un **swap automático** en Uniswap V2 (ruta directa USDC o fallback vía WETH).  
    - El resultado del swap (en USDC) se acredita al balance del usuario tras verificar el `bankCap` con el monto convertido.  
    - Se emite un evento `DepositMade`.
 
@@ -51,11 +61,11 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-## **Mejoras implementadas en KipuBank V3**
+## ✨ **Mejoras implementadas en KipuBank V3**
 
 | Mejora | Descripción | Motivo |
 |---------|--------------|--------|
-| **Conversion on-chain mediante Uniswap V2** | Reemplaza el oráculo de Chainlink de V2. Los swaps se ejecutan directamente, con ruta directa a USDC o fallback via WETH si no hay par, y los resultados se reciben en USDC. | Reducción de dependencias externas, datos on-chain verificables. |
+| **Conversión on-chain mediante Uniswap V2** | Reemplaza el oráculo de Chainlink de V2. Los swaps se ejecutan directamente, con ruta directa a USDC o fallback vía WETH si no hay par, y los resultados se reciben en USDC. | Reducción de dependencias externas, datos on-chain verificables. |
 | **Contabilidad interna en USDC** | Todo el sistema opera en USDC. | Simplifica la comparación de valores y auditorías. |
 | **Control de acceso jerárquico** | Roles diferenciados (`onlyAdmin`, `onlyManager`). | Evita abusos y mejora la gestión operativa. |
 | **Registro contable extendido** | Nuevos campos: `totalConvertedUSDC`, `lastUpdateTimestamp`. | Mayor trazabilidad histórica. |
@@ -66,7 +76,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-## **Decisiones de diseño y trade-offs**
+## ⚖️ **Decisiones de diseño y trade-offs**
 
 | Decisión | Ventaja | Trade-off |
 |-----------|----------|-----------|
@@ -78,7 +88,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-## Deployment & Verification
+## 🚀 Deployment & Verification
 
 **Contract:** `KipuBankV3`  
 **Network:** Sepolia Testnet  
@@ -93,7 +103,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-## Instrucciones completas de despliegue con Foundry (Sepolia)
+## 🧭 Instrucciones completas de despliegue con Foundry (Sepolia)
 
 > Esta guía explica cómo desplegar **KipuBankV3** en la red de pruebas **Sepolia**, utilizando Foundry de forma segura y reproducible. Incluye la creación del archivo `.env` con tus credenciales, la carga de variables en PowerShell y el uso del archivo `args.txt` para pasar correctamente los argumentos del constructor.
 
@@ -219,7 +229,7 @@ forge verify-contract 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 src/Kipu-Bank.s
 
 ---
 
-## Configuración inicial de roles
+## 🧩 Configuración inicial de roles
 
 Una vez desplegado el contrato, el **Owner (cuenta que lo desplegó)** puede asignar los roles de **Manager** y **Auditor** a otras direcciones.
 
@@ -256,11 +266,11 @@ cast call 0x<banco_address> "hasRole(bytes32,address)(bool)" \
 
 ---
 
-## Interacciones con el contrato KipuBankV3
+## 🔗 Interacciones con el contrato KipuBankV3
 
 > **Dirección desplegada:** `0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545`  
 > **Red:** Sepolia Testnet  
-> **Version Solidity:** 0.8.20  
+> **Versión Solidity:** 0.8.20  
 > **Framework:** Foundry
 
 ---
@@ -327,7 +337,7 @@ cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "rescueETH(address,uint256)
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "rescueTokens(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
 ```
 
-#### Configuracion y limites
+#### Configuración y límites
 ```bash
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "setLimits(uint256,uint256)" 1000000000000000000000000 1000000000000000000000 --private-key $PRIVATE_KEY
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "setWithdrawCooldown(uint256)" 86400 --private-key $PRIVATE_KEY
@@ -341,7 +351,7 @@ cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "emergencyWithdraw(address,
 
 ---
 
-## Eventos importantes
+## 📣 Eventos importantes
 
 | Evento | Descripción |
 |---------|-------------|
@@ -358,7 +368,7 @@ cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "emergencyWithdraw(address,
 
 ---
 
-# INFORME TÉCNICO DETALLADO (TP4 — Development Tooling & DeFi)
+# 📑 INFORME TÉCNICO DETALLADO (TP4 — Development Tooling & DeFi)
 
 ## 1. Propósito general
 
@@ -372,14 +382,14 @@ Conserva la arquitectura modular, la seguridad basada en roles y la trazabilidad
 
 ## 2. Correctitud funcional
 
-| Aspecto | Descripcion |
+| Aspecto | Descripción |
 |----------|--------------|
-| **Depositos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automatico (ruta directa o via WETH) y se acredita el USDC resultante. |
-| **Integracion con Uniswap V2** | El contrato mantiene referencias directas a `IUniswapV2Router02`, `IUniswapV2Factory` y `WETH`. Construye la ruta (par directo a USDC o fallback via WETH) y calcula `amountOutMin` con `getAmountsOut()` para controlar el slippage. |
-| **Limites globales y personales** | Se aplican los limites `bankCap` (maximo global de fondos) y `withdrawLimit` (maximo por usuario), descontando `accounting.totalDepositsUSDC` al retirar para liberar capacidad. |
-| **Contabilidad integral** | Se actualizan continuamente los montos de depositos, retiros y swaps ejecutados, reflejados en `BankAccounting`. |
-| **Pausable y emergencias** | Implementa el patron *Circuit Breaker* (`pause()` / `unpause()`) y funciones de rescate seguras. |
-| **Eventos y trazabilidad** | Cada operacion emite eventos (`DepositMade`, `WithdrawalMade`, `SwapExecuted`, `LimitsUpdated`, etc.), lo que permite auditoria on-chain en exploradores como Etherscan y Tenderly. |
+| **Depósitos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automático (ruta directa o vía WETH) y se acredita el USDC resultante. |
+| **Integración con Uniswap V2** | El contrato mantiene referencias directas a `IUniswapV2Router02`, `IUniswapV2Factory` y `WETH`. Construye la ruta (par directo a USDC o fallback vía WETH) y calcula `amountOutMin` con `getAmountsOut()` para controlar el slippage. |
+| **Límites globales y personales** | Se aplican los límites `bankCap` (máximo global de fondos) y `withdrawLimit` (máximo por usuario), descontando `accounting.totalDepositsUSDC` al retirar para liberar capacidad. |
+| **Contabilidad integral** | Se actualizan continuamente los montos de depósitos, retiros y swaps ejecutados, reflejados en `BankAccounting`. |
+| **Pausable y emergencias** | Implementa el patrón *Circuit Breaker* (`pause()` / `unpause()`) y funciones de rescate seguras. |
+| **Eventos y trazabilidad** | Cada operación emite eventos (`DepositMade`, `WithdrawalMade`, `SwapExecuted`, `LimitsUpdated`, etc.), lo que permite auditoría on-chain en exploradores como Etherscan y Tenderly. |
 
 ---
 
@@ -419,6 +429,6 @@ Durante el desarrollo de **KipuBankV3** se aplicaron los conceptos clave del mó
 
 ---
 
-## Conclusión
+## ✅ Conclusión
 
 **KipuBankV3** materializa el paso definitivo hacia un sistema financiero **totalmente descentralizado, seguro y auditable**. El contrato implementa una arquitectura profesional basada en principios de los sistemas distribuidos, integrando protocolos reales (Uniswap V2) y buenas prácticas de desarrollo Web3, cumpliendo todos los objetivos del **TP4 — Development Tooling & DeFi**.
