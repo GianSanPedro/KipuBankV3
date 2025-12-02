@@ -1,13 +1,3 @@
-| Aspecto | Descripcion |
-|----------|--------------|
-| **Depositos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automatico (ruta directa o via WETH) y se acredita el USDC resultante. |
-| **Integracion con Uniswap V2** | El contrato mantiene referencias directas a IUniswapV2Router02, IUniswapV2Factory y WETH. Construye la ruta (par directo a USDC o fallback via WETH) y calcula amountOutMin con getAmountsOut() para controlar el slippage. |
-| **Limites globales y personales** | Se aplican los limites bankCap (maximo global de fondos) y withdrawLimit (maximo por usuario), descontando accounting.totalDepositsUSDC al retirar para liberar capacidad. |
-| **Contabilidad integral** | Se actualizan continuamente los montos de depositos, retiros y swaps ejecutados, reflejados en BankAccounting. |
-| **Pausable y emergencias** | Implementa el patron *Circuit Breaker* (pause() / unpause()) y funciones de rescate seguras. |
-| **Eventos y trazabilidad** | Cada operacion emite eventos (DepositMade, WithdrawalMade, SwapExecuted, LimitsUpdated, etc.), lo que permite auditoria on-chain en exploradores como Etherscan y Tenderly. |
-
----
 
 # ¿Qué es **KipuBank V3 — Contrato Bancario Descentralizado (DeFi)** 
 ### Curso: *Sistemas Distribuidos — Módulo 4: Development Tooling & DeFi*
