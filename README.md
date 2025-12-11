@@ -1,84 +1,89 @@
-
-# 🏦 ¿Qué es **KipuBank V3 — Contrato Bancario Descentralizado (DeFi)**
-### Curso: *Sistemas Distribuidos — Módulo 4: Development Tooling & DeFi*
-### Autor: **Gianfranco San Pedro**
-
----
-
-## 🚀 **Presentación general**
-
-**KipuBankV3** es la tercera iteración del sistema bancario descentralizado desarrollado en el marco del módulo **Development Tooling & DeFi**.  
-Representa la transición completa hacia un modelo **DeFi on-chain**, integrando el protocolo **Uniswap V2** para realizar swaps automáticos a **USDC**, eliminando la dependencia de oráculos de precios (Chainlink) utilizada en versiones anteriores.
-
-El contrato permite a los usuarios depositar **ETH o cualquier token ERC20 swappeable en Uniswap V2**; si no es USDC, se convierte internamente a USDC usando ruta directa o fallback vía WETH y se registra el equivalente en balances internos.  
-A su vez, mantiene los principios de **control distribuido, seguridad, modularidad y trazabilidad contable** que caracterizaron a KipuBankV2.
-
-La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional puede evolucionar hacia un modelo **componible, verificable y totalmente autónomo**, utilizando la infraestructura distribuida de Ethereum.
+# What is **KipuBank V3 - Decentralized Banking Contract (DeFi)**
+### Course: *Distributed Systems - Module 4: Development Tooling & DeFi*
+### Author: **Gianfranco San Pedro**
 
 ---
 
-## 🛡️ **Roles y funciones**
+## General Overview
 
-| Rol | Descripción | Permisos principales |
-|------|------------|----------------------|
-| **Owner / Admin** | Control total sobre parámetros globales del contrato. | `setLimits`, `setWithdrawCooldown`, `setUniswapRouter`, `addManager`, `addAuditor`, `pause`, `unpause`, `emergencyWithdraw`, `rescueETH`, `rescueTokens`. |
-| **Manager** | Operador que puede pausar la operatividad del sistema en emergencias. | `pause()` |
-| **Auditor** | Observador con acceso a datos contables del banco. | Lectura de estado on-chain. |
-| **Usuario** | Cualquier dirección que interactúa con el banco. | `deposit`, `withdraw`. |
+**KipuBankV3** is the third iteration of the decentralized banking system built for the **Development Tooling & DeFi** module.  
+It marks the full shift to an **on-chain DeFi** model by integrating the **Uniswap V2** protocol to perform automatic swaps to **USDC**, eliminating the price-oracle dependency (Chainlink) used in previous versions.
 
----
+The contract lets users deposit **ETH or any ERC20 token swappable on Uniswap V2**; if it is not USDC, it is converted internally to USDC using a direct route or a WETH fallback and recorded as an equivalent internal balance.  
+It retains the **distributed control, security, modularity, and accounting traceability** that characterized KipuBankV2.
 
-## ⚙️ **Funcionamiento general del contrato**
-
-1. **Depósitos:**  
-   - El usuario deposita ETH o un token ERC20.  
-   - Si no es USDC, el contrato ejecuta un **swap automático** en Uniswap V2 (ruta directa USDC o fallback vía WETH).  
-   - El resultado del swap (en USDC) se acredita al balance del usuario tras verificar el `bankCap` con el monto convertido.  
-   - Se emite un evento `DepositMade`.
-
-2. **Retiros:**  
-   - Los usuarios pueden retirar su saldo en USDC dentro del límite establecido (`withdrawLimit`) y respetando un cooldown opcional (`withdrawCooldown`) si se configura.  
-   - La operación se registra contablemente y emite `WithdrawalMade`.
-
-3. **Administración:**  
-   - Los administradores pueden modificar los límites globales (`setLimits`), configurar cooldown de retiros (`setWithdrawCooldown`), registrar nuevos tokens (`toggleToken`), actualizar el router (`setUniswapRouter`) y manejar roles.
-
-4. **Emergencias:**  
-   - En caso de fallos, el sistema puede pausarse (`pause`) y los fondos pueden rescatarse manualmente (`rescueETH` o `rescueTokens`).
-
-5. **Contabilidad global:**  
-   - Todos los movimientos se reflejan en la estructura `BankAccounting` (depósitos totales, retiros, swaps y timestamp).
+KipuBankV3 aims to show how a traditional financial system can evolve into a **composable, verifiable, fully autonomous** model using Ethereum�s distributed infrastructure.
 
 ---
 
-## ✨ **Mejoras implementadas en KipuBank V3**
+## Additional reports
 
-| Mejora | Descripción | Motivo |
-|---------|--------------|--------|
-| **Conversión on-chain mediante Uniswap V2** | Reemplaza el oráculo de Chainlink de V2. Los swaps se ejecutan directamente, con ruta directa a USDC o fallback vía WETH si no hay par, y los resultados se reciben en USDC. | Reducción de dependencias externas, datos on-chain verificables. |
-| **Contabilidad interna en USDC** | Todo el sistema opera en USDC. | Simplifica la comparación de valores y auditorías. |
-| **Control de acceso jerárquico** | Roles diferenciados (`onlyAdmin`, `onlyManager`). | Evita abusos y mejora la gestión operativa. |
-| **Registro contable extendido** | Nuevos campos: `totalConvertedUSDC`, `lastUpdateTimestamp`. | Mayor trazabilidad histórica. |
-| **Sistema pausable y funciones de rescate seguras** | Patrón `Circuit Breaker`. | Minimiza riesgo ante fallos o ataques. |
-| **Slippage controlado (5%)** | Usa `getAmountsOut()` para calcular `amountOutMin`. | Protege de pérdidas en swaps. |
-| **Eventos exhaustivos** | Cada función crítica emite eventos (`DepositMade`, `SwapExecuted`, `EmergencyWithdrawal`). | Auditoría completa. |
-| **Cooldown configurable de retiros** | `withdrawCooldown` permite espaciar retiros por usuario. | Reduce velocidad de fuga ante compromiso de clave; agrega fricción si se usa. |
+A dedicated threat analysis and security report for KipuBankV3 is available: [Threat Analysis Report](Threat Analysis Report - KipuBankV3.md).
 
 ---
 
-## ⚖️ **Decisiones de diseño y trade-offs**
+## Roles and Responsibilities
 
-| Decisión | Ventaja | Trade-off |
-|-----------|----------|-----------|
-| **Eliminación del oráculo Chainlink** | Simplifica arquitectura y reduce gas. | Depende de precios de Uniswap (liquidez variable). |
-| **Contabilidad en USDC** | Estandariza valores y límites. | No conserva datos de valor histórico de tokens originales. |
-| **Slippage fijo (5%)** | Previene pérdidas excesivas. | No configurable por usuario. |
-| **Roles distribuidos** | Separación de responsabilidades. | Aumenta la complejidad en pruebas. |
-| **Uso de Uniswap V2 Router 02** | Estándar ampliamente adoptado. | No usa optimizaciones de Uniswap V3. |
+| Role | Description | Main Permissions |
+|------|-------------|------------------|
+| **Owner / Admin** | Full control over global contract parameters. | `setLimits`, `setWithdrawCooldown`, `setUniswapRouter`, `addManager`, `addAuditor`, `pause`, `unpause`, `emergencyWithdraw`, `rescueETH`, `rescueTokens`. |
+| **Manager** | Operator who can pause system operations in emergencies. | `pause()` |
+| **Auditor** | Observer with access to the bank�s accounting data. | Read on-chain state. |
+| **User** | Any address interacting with the bank. | `deposit`, `withdraw`. |
 
 ---
 
-## 🚀 Deployment & Verification
+## How the Contract Works
+
+1. **Deposits:**  
+   - The user deposits ETH or an ERC20 token.  
+   - If it is not USDC, the contract executes an **automatic swap** on Uniswap V2 (direct USDC route or WETH fallback).  
+   - The swap result (in USDC) is credited to the user after checking `bankCap` against the converted amount.  
+   - Emits a `DepositMade` event.
+
+2. **Withdrawals:**  
+   - Users can withdraw their USDC balance within the set limit (`withdrawLimit`) and, if configured, respecting an optional cooldown (`withdrawCooldown`).  
+   - The operation is recorded in accounting and emits `WithdrawalMade`.
+
+3. **Administration:**  
+   - Administrators can change global limits (`setLimits`), configure withdrawal cooldowns (`setWithdrawCooldown`), register new tokens (`toggleToken`), update the router (`setUniswapRouter`), and manage roles.
+
+4. **Emergencies:**  
+   - In case of failures, the system can be paused (`pause`), and funds can be rescued manually (`rescueETH` or `rescueTokens`).
+
+5. **Global accounting:**  
+   - All movements are reflected in the `BankAccounting` structure (total deposits, withdrawals, swaps, and timestamp).
+
+---
+
+## Improvements Implemented in KipuBank V3
+
+| Improvement | Description | Rationale |
+|-------------|-------------|-----------|
+| **On-chain conversion via Uniswap V2** | Replaces the Chainlink oracle from V2. Swaps are executed directly, with a direct USDC route or WETH fallback if no pair exists, and results are received in USDC. | Fewer external dependencies, verifiable on-chain data. |
+| **Internal accounting in USDC** | The entire system operates in USDC. | Simplifies value comparisons and audits. |
+| **Hierarchical access control** | Differentiated roles (`onlyAdmin`, `onlyManager`). | Prevents abuse and improves operational management. |
+| **Extended accounting record** | New fields: `totalConvertedUSDC`, `lastUpdateTimestamp`. | Greater historical traceability. |
+| **Pausable system and safe rescue functions** | `Circuit Breaker` pattern. | Minimizes risk during failures or attacks. |
+| **Controlled slippage (5%)** | Uses `getAmountsOut()` to compute `amountOutMin`. | Protects against swap losses. |
+| **Comprehensive events** | Every critical function emits events (`DepositMade`, `SwapExecuted`, `EmergencyWithdrawal`). | Complete audit trail. |
+| **Configurable withdrawal cooldown** | `withdrawCooldown` spaces out withdrawals per user. | Slows fund leakage if a key is compromised; adds friction when enabled. |
+
+---
+
+## Design Decisions and Trade-offs
+
+| Decision | Advantage | Trade-off |
+|----------|-----------|-----------|
+| **Removal of the Chainlink oracle** | Simplifies architecture and reduces gas. | Relies on Uniswap prices (variable liquidity). |
+| **USDC-based accounting** | Standardizes values and limits. | Does not retain historical values of original tokens. |
+| **Fixed slippage (5%)** | Prevents excessive losses. | Not user-configurable. |
+| **Distributed roles** | Separation of responsibilities. | Increases testing complexity. |
+| **Use of Uniswap V2 Router 02** | Widely adopted standard. | Does not use Uniswap V3 optimizations. |
+
+---
+
+## Deployment & Verification
 
 **Contract:** `KipuBankV3`  
 **Network:** Sepolia Testnet  
@@ -87,56 +92,56 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 **Transaction Hash:** [0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c](https://sepolia.etherscan.io/tx/0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c)
 
 ### Verification
-- **Etherscan:** Verified — [link](https://sepolia.etherscan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
+- **Etherscan:** Verified - [link](https://sepolia.etherscan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 - **Routescan:** [View](https://sepolia.routescan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 - **Blockscout:** [View](https://eth-sepolia.blockscout.com/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 
 ---
 
-## 🧭 Instrucciones completas de despliegue con Foundry (Sepolia)
+## Full Deployment Instructions with Foundry (Sepolia)
 
-> Esta guía explica cómo desplegar **KipuBankV3** en la red de pruebas **Sepolia**, utilizando Foundry de forma segura y reproducible. Incluye la creación del archivo `.env` con tus credenciales, la carga de variables en PowerShell y el uso del archivo `args.txt` para pasar correctamente los argumentos del constructor.
-
----
-
-### 1. Requisitos previos
-
-Antes de comenzar, asegurate de tener instalado y configurado correctamente:
-- **Foundry** (que incluye `forge` y `cast`)  
-  - [Instalación oficial](https://book.getfoundry.sh/getting-started/installation)
-- **Metamask** (para obtener tu *private key* y fondos de Sepolia)
-- Una cuenta en **[Infura](https://infura.io/)** (para obtener tu *API key* y conectarte al RPC de Sepolia)
-- Fondos en Sepolia (podés obtenerlos desde un faucet público, como [https://sepoliafaucet.com/](https://sepoliafaucet.com/))
+> This guide explains how to deploy **KipuBankV3** to the **Sepolia** test network using Foundry safely and reproducibly. It covers creating the `.env` file with your credentials, loading variables in PowerShell, and using `args.txt` to pass constructor arguments correctly.
 
 ---
 
-### 2. Crear el archivo `.env`
+### 1. Prerequisites
 
-En la raíz del proyecto (`KipuBankV3/`), crear un archivo llamado `.env` con el siguiente contenido:
+Before starting, make sure you have installed and configured:
+- **Foundry** (includes `forge` and `cast`)  
+  - [Official installation](https://book.getfoundry.sh/getting-started/installation)
+- **Metamask** (to obtain your private key and Sepolia funds)
+- An account on **[Infura](https://infura.io/)** (to get your API key and connect to the Sepolia RPC)
+- Sepolia funds (you can get them from a public faucet such as [https://sepoliafaucet.com/](https://sepoliafaucet.com/))
+
+---
+
+### 2. Create the `.env` file
+
+In the project root (`KipuBankV3/`), create a file named `.env` with the following content:
 
 ```env
-PRIVATE_KEY=0xTU_CLAVE_PRIVADA_DE_METAMASK
-RPC_URL=https://sepolia.infura.io/v3/TU_API_KEY_DE_INFURA
+PRIVATE_KEY=0xYOUR_METAMASK_PRIVATE_KEY
+RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_API_KEY
 ```
 
-**Importante:**
-- La `PRIVATE_KEY` se obtiene desde Metamask -> Configuración -> Seguridad -> Exportar clave privada (nunca la compartas).
-- La `RPC_URL` se genera desde tu cuenta de Infura, en el panel del proyecto -> "Endpoints" -> seleccionar "Sepolia".
+**Important:**
+- `PRIVATE_KEY` is obtained from Metamask -> Settings -> Security -> Export private key (never share it).
+- `RPC_URL` is generated in your Infura account, project dashboard -> "Endpoints" -> select "Sepolia".
 
 ---
 
-### 3. Cargar las variables de entorno en PowerShell
+### 3. Load environment variables in PowerShell
 
-Para que PowerShell lea automáticamente las variables desde tu archivo `.env`, ejecutá **una sola vez por sesión**:
+For PowerShell to automatically read the variables from your `.env`, run **once per session**:
 
 ```powershell
 $env:RPC_URL = (Get-Content .env | Select-String "RPC_URL" | ForEach-Object { $_.Line.Split('=')[1].Trim() })
 $env:PRIVATE_KEY = (Get-Content .env | Select-String "PRIVATE_KEY" | ForEach-Object { $_.Line.Split('=')[1].Trim() })
 ```
 
-Esto carga ambas variables en la sesión actual de PowerShell **sin mostrar ni exponer la clave privada**.
+This loads both variables into the current PowerShell session **without displaying or exposing the private key**.
 
-Podés verificar que se hayan cargado correctamente con:
+You can verify they were loaded correctly with:
 ```powershell
 echo $env:RPC_URL
 echo $env:PRIVATE_KEY
@@ -144,11 +149,11 @@ echo $env:PRIVATE_KEY
 
 ---
 
-### 4. Crear el archivo `args.txt` con los argumentos del constructor
+### 4. Create `args.txt` with constructor arguments
 
-Debido a que el comando de despliegue generaba errores al pasar arrays directamente por consola, se utiliza un archivo de texto plano llamado `args.txt` en la raíz del proyecto.
+Because the deployment command produced errors when passing arrays directly in the console, a plain text file named `args.txt` is used in the project root.
 
-Ejemplo de contenido de `args.txt` (orden actualizado):
+Example `args.txt` content (updated order):
 ```text
 0xUSDC_ADDRESS
 0xUNISWAP_V2_ROUTER
@@ -158,26 +163,26 @@ Ejemplo de contenido de `args.txt` (orden actualizado):
 ["0x6e1ea69318f595fb90e5f1c68670ba53b28614bb"]
 ```
 
-Donde:
-- La primera dirección es el **USDC** de la red destino.
-- La segunda dirección es el **router de Uniswap V2** (por ejemplo, el de Sepolia o uno de test).
-- Los siguientes dos números son los límites globales del banco en unidades de USDC (1e6 = 1 USDC).
-- Los dos arrays corresponden a las listas iniciales de `managers` y `auditors`.
+Where:
+- The first address is the target network **USDC**.
+- The second address is the **Uniswap V2 router** (for example, Sepolia�s or a test router).
+- The next two numbers are the bank�s global limits in USDC units (1e6 = 1 USDC).
+- The two arrays are the initial lists of `managers` and `auditors`.
 
 ---
 
-### 5. Compilar el contrato
+### 5. Compile the contract
 
-Antes de desplegar, asegurate de que compile correctamente:
+Before deploying, ensure it compiles correctly:
 ```bash
 forge build
 ```
 
 ---
 
-### 6. Desplegar el contrato en Sepolia
+### 6. Deploy the contract to Sepolia
 
-Finalmente, ejecutá el siguiente comando para desplegar el contrato, cargando los datos desde `args.txt`:
+Run the following command to deploy the contract, loading data from `args.txt`:
 
 ```bash
 forge create src/Kipu-Bank.sol:KipuBankV3 ^
@@ -187,9 +192,9 @@ forge create src/Kipu-Bank.sol:KipuBankV3 ^
   --broadcast
 ```
 
-El modificador `--broadcast` envía la transacción a la red y crea el contrato.
+The `--broadcast` flag sends the transaction to the network and creates the contract.
 
-Una vez completado, deberías ver una salida similar a:
+Once completed, you should see output similar to:
 
 ```
 Deployer: 0x6e1eA69318f595fB90e5f1C68670ba53B28614Bb
@@ -199,9 +204,9 @@ Transaction hash: 0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f
 
 ---
 
-### 7. Verificación del contrato
+### 7. Contract verification
 
-Luego de desplegar, podés verificar automáticamente el código fuente en Etherscan (usando el mismo `args.txt`):
+After deployment, you can automatically verify the source code on Etherscan (using the same `args.txt`):
 
 ```bash
 forge verify-contract 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 src/Kipu-Bank.sol:KipuBankV3 --chain sepolia --constructor-args-path args.txt --etherscan-api-key $env:ETHERSCAN_API_KEY --watch
@@ -209,21 +214,21 @@ forge verify-contract 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 src/Kipu-Bank.s
 
 ---
 
-### Resultado esperado
+### Expected result
 
-- Contrato verificado en Etherscan:  
+- Contract verified on Etherscan:  
   [`0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545`](https://sepolia.etherscan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 
-- Transacción de despliegue:  
+- Deployment transaction:  
   [`0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c`](https://sepolia.etherscan.io/tx/0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c)
 
 ---
 
-## 🧩 Configuración inicial de roles
+## Initial Role Setup
 
-Una vez desplegado el contrato, el **Owner (cuenta que lo desplegó)** puede asignar los roles de **Manager** y **Auditor** a otras direcciones.
+Once deployed, the **Owner (deployer account)** can assign **Manager** and **Auditor** roles to other addresses.
 
-### Asignar rol de Manager
+### Assign Manager role
 
 ```bash
 cast send 0x<banco_address> "grantRole(bytes32,address)" \
@@ -231,7 +236,7 @@ cast send 0x<banco_address> "grantRole(bytes32,address)" \
   --private-key $PRIVATE_KEY
 ```
 
-### Asignar rol de Auditor
+### Assign Auditor role
 
 ```bash
 cast send 0x<banco_address> "grantRole(bytes32,address)" \
@@ -239,7 +244,7 @@ cast send 0x<banco_address> "grantRole(bytes32,address)" \
   --private-key $PRIVATE_KEY
 ```
 
-### Revocar un rol
+### Revoke a role
 
 ```bash
 cast send 0x<banco_address> "revokeRole(bytes32,address)" \
@@ -247,7 +252,7 @@ cast send 0x<banco_address> "revokeRole(bytes32,address)" \
   --private-key $PRIVATE_KEY
 ```
 
-### Verificar si una cuenta tiene un rol
+### Check if an account has a role
 
 ```bash
 cast call 0x<banco_address> "hasRole(bytes32,address)(bool)" \
@@ -256,18 +261,18 @@ cast call 0x<banco_address> "hasRole(bytes32,address)(bool)" \
 
 ---
 
-## 🔗 Interacciones con el contrato KipuBankV3
+## Interacting with the KipuBankV3 Contract
 
-> **Dirección desplegada:** `0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545`  
-> **Red:** Sepolia Testnet  
-> **Versión Solidity:** 0.8.20  
+> **Deployed address:** `0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545`  
+> **Network:** Sepolia Testnet  
+> **Solidity version:** 0.8.20  
 > **Framework:** Foundry
 
 ---
 
-### 1. Funciones del Cliente / Usuario común
+### 1. Client / Regular User Functions
 
-#### Lectura (no requieren GAS)
+#### Read (no GAS required)
 ```bash
 cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "accounting()(uint256,uint256,uint256,uint256,uint256)"
 cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "userUSDCBalance(address)(uint256)" 0x<tu_wallet>
@@ -277,7 +282,7 @@ cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "withdrawCooldown()(uint256
 cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
 ```
 
-#### Escritura (requieren GAS)
+#### Write (GAS required)
 ```bash
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "deposit(address,uint256)" 0x<token_address> 1000000000000000000 --private-key $PRIVATE_KEY
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "withdraw(uint256)" 100000000 --private-key $PRIVATE_KEY
@@ -285,23 +290,23 @@ cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "withdraw(uint256)" 1000000
 
 ---
 
-### 2. Funciones del Manager (MANAGER_ROLE)
+### 2. Manager Functions (MANAGER_ROLE)
 
-#### Escritura
+#### Write
 ```bash
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "pause()" --private-key $PRIVATE_KEY
 ```
 
-#### Lectura
+#### Read
 ```bash
 cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
 ```
 
 ---
 
-### 3. Funciones del Auditor (AUDITOR_ROLE)
+### 3. Auditor Functions (AUDITOR_ROLE)
 
-#### Lectura (no requieren GAS)
+#### Read (no GAS required)
 ```bash
 cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "accounting()(uint256,uint256,uint256,uint256,uint256)"
 cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "tokenRegistry(address)(bool,uint8,uint256,uint256)" 0x<token_address>
@@ -310,16 +315,16 @@ cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "userUSDCBalance(address)(u
 
 ---
 
-### 4. Funciones del Owner / Administrador principal
+### 4. Owner / Main Administrator Functions
 
-#### Gestión de roles
+#### Role management
 ```bash
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "grantRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "revokeRole(bytes32,address)" 0x<ROLE_HASH> 0x<account> --private-key $PRIVATE_KEY
 cast call 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "hasRole(bytes32,address)(bool)" 0x<ROLE_HASH> 0x<account>
 ```
 
-#### Seguridad y administración
+#### Security and administration
 ```bash
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "transferOwnership(address)" 0x<nuevo_owner> --private-key $PRIVATE_KEY
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "renounceOwnership()" --private-key $PRIVATE_KEY
@@ -327,7 +332,7 @@ cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "rescueETH(address,uint256)
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "rescueTokens(address,address,uint256)" 0x<token> 0x<destino> 1000000000000000000 --private-key $PRIVATE_KEY
 ```
 
-#### Configuración y límites
+#### Configuration and limits
 ```bash
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "setLimits(uint256,uint256)" 1000000000000000000000000 1000000000000000000000 --private-key $PRIVATE_KEY
 cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "setWithdrawCooldown(uint256)" 86400 --private-key $PRIVATE_KEY
@@ -341,84 +346,87 @@ cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "emergencyWithdraw(address,
 
 ---
 
-## 📣 Eventos importantes
+## Key Events
 
-| Evento | Descripción |
-|---------|-------------|
-| `DepositMade(user, token, amountToken, amountUSDC)` | Al depositar fondos |
-| `WithdrawalMade(user, token, amountUSDC)` | Al retirar fondos |
-| `TokenStatusChanged(token, enabled)` | Al activar/desactivar un token |
-| `LimitsUpdated(newBankCap, newWithdrawLimit)` | Al modificar límites |
-| `WithdrawCooldownUpdated(newCooldown)` | Al configurar el cooldown entre retiros |
-| `SwapExecuted(fromToken, toToken, amountIn, amountOut)` | Al hacer un swap |
-| `ContractPaused(by, timestamp)` / `ContractResumed(by, timestamp)` | Al pausar o reanudar |
-| `RoleGranted(role, account, sender)` / `RoleRevoked(role, account, sender)` | Cambios de roles |
-| `OwnershipTransferred(previousOwner, newOwner)` | Cambio de propietario |
-| `RescueExecuted(asset, to, amount, timestamp)` | Recuperación de fondos bloqueados |
-
----
-
-# 📑 INFORME TÉCNICO DETALLADO (TP4 — Development Tooling & DeFi)
-
-## 1. Propósito general
-
-**KipuBankV3** es la tercera iteración del sistema bancario descentralizado desarrollado en el curso *Sistemas Distribuidos — Módulo 4: Development Tooling & DeFi*.  
-Esta versión representa la transición completa hacia un modelo **DeFi on-chain**, integrando el protocolo **Uniswap V2** para realizar swaps automáticos a **USDC**, eliminando la dependencia de oráculos de precios (Chainlink) utilizada en versiones anteriores.
-
-El contrato permite depósitos de **ETH o tokens ERC20**, convierte automáticamente los fondos a USDC, y mantiene balances internos expresados en ese valor estable.  
-Conserva la arquitectura modular, la seguridad basada en roles y la trazabilidad contable de las versiones anteriores, pero reemplaza las fuentes externas de datos por un modelo completamente distribuido y autónomo.
+| Event | Description |
+|-------|-------------|
+| `DepositMade(user, token, amountToken, amountUSDC)` | When funds are deposited |
+| `WithdrawalMade(user, token, amountUSDC)` | When funds are withdrawn |
+| `TokenStatusChanged(token, enabled)` | When a token is enabled/disabled |
+| `LimitsUpdated(newBankCap, newWithdrawLimit)` | When limits are modified |
+| `WithdrawCooldownUpdated(newCooldown)` | When the withdrawal cooldown is set |
+| `SwapExecuted(fromToken, toToken, amountIn, amountOut)` | When a swap is executed |
+| `ContractPaused(by, timestamp)` / `ContractResumed(by, timestamp)` | When pausing or resuming |
+| `RoleGranted(role, account, sender)` / `RoleRevoked(role, account, sender)` | Role changes |
+| `OwnershipTransferred(previousOwner, newOwner)` | Ownership change |
+| `RescueExecuted(asset, to, amount, timestamp)` | Recovery of locked funds |
 
 ---
 
-## 2. Correctitud funcional
+# DETAILED TECHNICAL REPORT (TP4 - Development Tooling & DeFi)
 
-| Aspecto | Descripción |
-|----------|--------------|
-| **Depósitos generalizados** | Los usuarios pueden depositar cualquier token ERC20 soportado. Si el token no es USDC, se ejecuta un swap automático (ruta directa o vía WETH) y se acredita el USDC resultante. |
-| **Integración con Uniswap V2** | El contrato mantiene referencias directas a `IUniswapV2Router02`, `IUniswapV2Factory` y `WETH`. Construye la ruta (par directo a USDC o fallback vía WETH) y calcula `amountOutMin` con `getAmountsOut()` para controlar el slippage. |
-| **Límites globales y personales** | Se aplican los límites `bankCap` (máximo global de fondos) y `withdrawLimit` (máximo por usuario), descontando `accounting.totalDepositsUSDC` al retirar para liberar capacidad. |
-| **Contabilidad integral** | Se actualizan continuamente los montos de depósitos, retiros y swaps ejecutados, reflejados en `BankAccounting`. |
-| **Pausable y emergencias** | Implementa el patrón *Circuit Breaker* (`pause()` / `unpause()`) y funciones de rescate seguras. |
-| **Eventos y trazabilidad** | Cada operación emite eventos (`DepositMade`, `WithdrawalMade`, `SwapExecuted`, `LimitsUpdated`, etc.), lo que permite auditoría on-chain en exploradores como Etherscan y Tenderly. |
+## 1. General Purpose
 
----
+**KipuBankV3** is the third iteration of the decentralized banking system developed in the course *Distributed Systems � Module 4: Development Tooling & DeFi*.  
+This version represents the full transition to an **on-chain DeFi** model by integrating the **Uniswap V2** protocol to perform automatic swaps to **USDC**, removing the price-oracle dependency (Chainlink) used in earlier versions.
 
-## 3. Seguridad, control de acceso y eficiencia en gas
-
-| Mecanismo | Implementación |
-|------------|----------------|
-| **Control de acceso** | Basado en roles (`onlyAdmin`, `onlyManager`, `onlyOwner`), usando `AccessControl` y `Ownable`. |
-| **Protección contra reentradas** | Uso de `ReentrancyGuard` en depósitos, retiros y rescates. |
-| **Validaciones internas** | `_validateAddress`, `_isSupportedToken`, `_verifyPair`, `_safeApprove`, `_validateUserBalance`. |
-| **Seguridad de swaps** | Se calcula `amountOutMin` (tolerancia 5 %). Si el swap entrega menos, revierte con `SlippageExceeded`. |
-| **Gestión de emergencias** | Durante `pause()`, solo el admin puede ejecutar `emergencyWithdraw()` o `rescueTokens()`. |
-| **Optimización de gas** | Eliminación de oráculos externos y modularización de funciones reducen costos y complejidad. |
+The contract allows deposits of **ETH or ERC20 tokens**, automatically converts funds to USDC, and maintains internal balances in that stable value.  
+It keeps the modular architecture, role-based security, and accounting traceability of previous versions, but replaces external data sources with a fully distributed, autonomous model.
 
 ---
 
-## 4. Calidad de código y mantenimiento
+## 2. Functional Correctness
 
-- **Estructura modular (12 secciones):** cada bloque del contrato (roles, eventos, errores, etc.) está separado y documentado con `@notice` / `@dev`.  
-- **Compatibilidad con Foundry:** preparado para `forge test`, `forge script` y verificación automatizada.  
-- **Eventos exhaustivos:** todo flujo crítico genera logs auditables.  
-- **Documentación técnica interna:** comentarios en español, claros y alineados con la guía de la cátedra.  
-- **Lint limpio:** compilación sin errores, solo notas estilísticas (`mixedCase`, `unaliased-import`).  
-- **Auditable y mantenible:** sin dependencias externas innecesarias; usa prácticas seguras DeFi.  
-
----
-
-## 5. Aprendizaje y decisiones de diseño
-
-Durante el desarrollo de **KipuBankV3** se aplicaron los conceptos clave del módulo:
-
-- **Composabilidad DeFi:** integración directa con Uniswap V2.  
-- **Distribución funcional:** elimina intermediarios centralizados.  
-- **Automatización on-chain:** toda la lógica de conversión y control ocurre dentro del contrato.  
-- **Auditoría y trazabilidad:** cada cambio de estado se registra mediante eventos.  
-- **Seguridad descentralizada:** uso de `ReentrancyGuard`, control de roles y `Pausable`.  
+| Aspect | Description |
+|--------|-------------|
+| **Generalized deposits** | Users can deposit any supported ERC20 token. If the token is not USDC, an automatic swap is executed (direct route or via WETH) and the resulting USDC is credited. |
+| **Integration with Uniswap V2** | The contract holds direct references to `IUniswapV2Router02`, `IUniswapV2Factory`, and `WETH`. It builds the route (direct USDC pair or WETH fallback) and computes `amountOutMin` with `getAmountsOut()` to control slippage. |
+| **Global and personal limits** | The `bankCap` (global cap) and `withdrawLimit` (per-user cap) apply, subtracting `accounting.totalDepositsUSDC` on withdrawal to free capacity. |
+| **Comprehensive accounting** | Deposit, withdrawal, and swap amounts are continuously updated and reflected in `BankAccounting`. |
+| **Pausable and emergencies** | Implements the *Circuit Breaker* pattern (`pause()` / `unpause()`) and safe rescue functions. |
+| **Events and traceability** | Every operation emits events (`DepositMade`, `WithdrawalMade`, `SwapExecuted`, `LimitsUpdated`, etc.), enabling on-chain auditing via explorers such as Etherscan and Tenderly. |
 
 ---
 
-## ✅ Conclusión
+## 3. Security, Access Control, and Gas Efficiency
 
-**KipuBankV3** materializa el paso definitivo hacia un sistema financiero **totalmente descentralizado, seguro y auditable**. El contrato implementa una arquitectura profesional basada en principios de los sistemas distribuidos, integrando protocolos reales (Uniswap V2) y buenas prácticas de desarrollo Web3, cumpliendo todos los objetivos del **TP4 — Development Tooling & DeFi**.
+| Mechanism | Implementation |
+|-----------|----------------|
+| **Access control** | Role-based (`onlyAdmin`, `onlyManager`, `onlyOwner`) using `AccessControl` and `Ownable`. |
+| **Reentrancy protection** | `ReentrancyGuard` on deposits, withdrawals, and rescues. |
+| **Internal validations** | `_validateAddress`, `_isSupportedToken`, `_verifyPair`, `_safeApprove`, `_validateUserBalance`. |
+| **Swap safety** | Computes `amountOutMin` (5% tolerance). If the swap returns less, it reverts with `SlippageExceeded`. |
+| **Emergency management** | During `pause()`, only the admin can execute `emergencyWithdraw()` or `rescueTokens()`. |
+| **Gas optimization** | Removal of external oracles and modularized functions reduce cost and complexity. |
+
+---
+
+## 4. Code Quality and Maintainability
+
+- **Modular structure (12 sections):** each contract block (roles, events, errors, etc.) is separated and documented with `@notice` / `@dev`.  
+- **Foundry compatibility:** prepared for `forge test`, `forge script`, and automated verification.  
+- **Comprehensive events:** every critical flow produces auditable logs.  
+- **Internal technical documentation:** clear Spanish comments aligned with the course guidelines.  
+- **Clean lint:** compiles without errors, only stylistic notes (`mixedCase`, `unaliased-import`).  
+- **Auditable and maintainable:** no unnecessary external dependencies; uses secure DeFi practices.  
+
+---
+
+## 5. Learning and Design Decisions
+
+During the development of **KipuBankV3**, the module�s key concepts were applied:
+
+- **DeFi composability:** direct integration with Uniswap V2.  
+- **Functional distribution:** removes centralized intermediaries.  
+- **On-chain automation:** all conversion and control logic runs inside the contract.  
+- **Auditing and traceability:** every state change is logged through events.  
+- **Decentralized security:** use of `ReentrancyGuard`, role control, and `Pausable`.  
+
+---
+
+## 6. Conclusion
+
+**KipuBankV3** marks the definitive step toward a **fully decentralized, secure, and auditable** financial system. The contract delivers a professional architecture grounded in distributed systems principles, integrates real-world protocols (Uniswap V2), and applies sound Web3 development practices, meeting all objectives of **TP4 - Development Tooling & DeFi**.
+---
+
+
