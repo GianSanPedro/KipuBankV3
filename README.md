@@ -16,6 +16,8 @@ It retains the **distributed control, security, modularity, and accounting trace
 
 KipuBankV3 aims to show how a traditional financial system can evolve into a **composable, verifiable, fully autonomous** model using Ethereum's distributed infrastructure.
 
+A dedicated threat analysis and security report for KipuBankV3 is available: [Threat Analysis Report](Threat%20Analysis%20Report%20-%20KipuBankV3.md).
+
 ---
 
 ## Roles and Responsibilities
