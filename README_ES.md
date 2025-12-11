@@ -1,11 +1,10 @@
-
-# 🏦 ¿Qué es **KipuBank V3 — Contrato Bancario Descentralizado (DeFi)**
-### Curso: *Sistemas Distribuidos — Módulo 4: Development Tooling & DeFi*
+﻿# ¿Qué es **KipuBank V3 - Contrato Bancario Descentralizado (DeFi)**
+### Curso: *Sistemas Distribuidos - Módulo 4: Development Tooling & DeFi*
 ### Autor: **Gianfranco San Pedro**
 
 ---
 
-##  **Presentación general**
+## 📌 **Presentación general**
 
 **KipuBankV3** es la tercera iteración del sistema bancario descentralizado desarrollado en el marco del módulo **Development Tooling & DeFi**.  
 Representa la transición completa hacia un modelo **DeFi on-chain**, integrando el protocolo **Uniswap V2** para realizar swaps automáticos a **USDC**, eliminando la dependencia de oráculos de precios (Chainlink) utilizada en versiones anteriores.
@@ -17,7 +16,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-##  **Roles y funciones**
+## 🧭 **Roles y funciones**
 
 | Rol | Descripción | Permisos principales |
 |------|------------|----------------------|
@@ -51,7 +50,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-## ✨ **Mejoras implementadas en KipuBank V3**
+## 🚀 **Mejoras implementadas en KipuBank V3**
 
 | Mejora | Descripción | Motivo |
 |---------|--------------|--------|
@@ -66,7 +65,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-## ⚖️ **Decisiones de diseño y trade-offs**
+## 🧠 **Decisiones de diseño y trade-offs**
 
 | Decisión | Ventaja | Trade-off |
 |-----------|----------|-----------|
@@ -78,7 +77,7 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 
 ---
 
-## 🚀 Deployment & Verification
+## 🌐 Deployment & Verification
 
 **Contract:** `KipuBankV3`  
 **Network:** Sepolia Testnet  
@@ -87,13 +86,13 @@ La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional 
 **Transaction Hash:** [0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c](https://sepolia.etherscan.io/tx/0xfd1ac01945ab2c3d7efbbd17ae3be7e0827bafd7aea288cd73766065e22f5f3c)
 
 ### Verification
-- **Etherscan:** Verified — [link](https://sepolia.etherscan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
+- **Etherscan:** Verified - [link](https://sepolia.etherscan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 - **Routescan:** [View](https://sepolia.routescan.io/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 - **Blockscout:** [View](https://eth-sepolia.blockscout.com/address/0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545)
 
 ---
 
-## 🧭 Instrucciones completas de despliegue con Foundry (Sepolia)
+## 🚢 Instrucciones completas de despliegue con Foundry (Sepolia)
 
 > Esta guía explica cómo desplegar **KipuBankV3** en la red de pruebas **Sepolia**, utilizando Foundry de forma segura y reproducible. Incluye la creación del archivo `.env` con tus credenciales, la carga de variables en PowerShell y el uso del archivo `args.txt` para pasar correctamente los argumentos del constructor.
 
@@ -219,7 +218,7 @@ forge verify-contract 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 src/Kipu-Bank.s
 
 ---
 
-## 🧩 Configuración inicial de roles
+## 🛡️ Configuración inicial de roles
 
 Una vez desplegado el contrato, el **Owner (cuenta que lo desplegó)** puede asignar los roles de **Manager** y **Auditor** a otras direcciones.
 
@@ -256,7 +255,7 @@ cast call 0x<banco_address> "hasRole(bytes32,address)(bool)" \
 
 ---
 
-## 🔗 Interacciones con el contrato KipuBankV3
+## 🧑‍💻 Interacciones con el contrato KipuBankV3
 
 > **Dirección desplegada:** `0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545`  
 > **Red:** Sepolia Testnet  
@@ -358,11 +357,11 @@ cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "emergencyWithdraw(address,
 
 ---
 
-# 📑 INFORME TÉCNICO DETALLADO (TP4 — Development Tooling & DeFi)
+# 📄 INFORME TÉCNICO DETALLADO (TP4 - Development Tooling & DeFi)
 
 ## 1. Propósito general
 
-**KipuBankV3** es la tercera iteración del sistema bancario descentralizado desarrollado en el curso *Sistemas Distribuidos — Módulo 4: Development Tooling & DeFi*.  
+**KipuBankV3** es la tercera iteración del sistema bancario descentralizado desarrollado en el curso *Sistemas Distribuidos - Módulo 4: Development Tooling & DeFi*.  
 Esta versión representa la transición completa hacia un modelo **DeFi on-chain**, integrando el protocolo **Uniswap V2** para realizar swaps automáticos a **USDC**, eliminando la dependencia de oráculos de precios (Chainlink) utilizada en versiones anteriores.
 
 El contrato permite depósitos de **ETH o tokens ERC20**, convierte automáticamente los fondos a USDC, y mantiene balances internos expresados en ese valor estable.  
@@ -419,11 +418,12 @@ Durante el desarrollo de **KipuBankV3** se aplicaron los conceptos clave del mó
 
 ---
 
-## ✅ Conclusión
+## 🔗 Informes adicionales
 
-**KipuBankV3** materializa el paso definitivo hacia un sistema financiero **totalmente descentralizado, seguro y auditable**. El contrato implementa una arquitectura profesional basada en principios de los sistemas distribuidos, integrando protocolos reales (Uniswap V2) y buenas prácticas de desarrollo Web3, cumpliendo todos los objetivos del **TP4 — Development Tooling & DeFi**.
+Existe un informe dedicado de análisis de amenazas y seguridad para KipuBankV3: [Informe de Analisis de Amenazas](Informe de Analisis de Amenazas.md).
+
 ---
 
-## Informes adicionales
+## 6. Conclusión
 
-Existe un informe dedicado de analisis de amenazas y seguridad para KipuBankV3: [Informe de Analisis de Amenazas](Informe de Analisis de Amenazas.md).
+**KipuBankV3** materializa el paso definitivo hacia un sistema financiero **totalmente descentralizado, seguro y auditable**. El contrato implementa una arquitectura profesional basada en principios de los sistemas distribuidos, integrando protocolos reales (Uniswap V2) y buenas prácticas de desarrollo Web3, cumpliendo todos los objetivos del **TP4 - Development Tooling & DeFi**.

@@ -1,4 +1,4 @@
-# What is **KipuBank V3 - Decentralized Banking Contract (DeFi)**
+﻿# What is **KipuBank V3 - Decentralized Banking Contract (DeFi)**
 ### Course: *Distributed Systems - Module 4: Development Tooling & DeFi*
 ### Author: **Gianfranco San Pedro**
 
@@ -12,13 +12,7 @@ It marks the full shift to an **on-chain DeFi** model by integrating the **Unisw
 The contract lets users deposit **ETH or any ERC20 token swappable on Uniswap V2**; if it is not USDC, it is converted internally to USDC using a direct route or a WETH fallback and recorded as an equivalent internal balance.  
 It retains the **distributed control, security, modularity, and accounting traceability** that characterized KipuBankV2.
 
-KipuBankV3 aims to show how a traditional financial system can evolve into a **composable, verifiable, fully autonomous** model using Ethereum�s distributed infrastructure.
-
----
-
-## Additional reports
-
-A dedicated threat analysis and security report for KipuBankV3 is available: [Threat Analysis Report](Threat Analysis Report - KipuBankV3.md).
+KipuBankV3 aims to show how a traditional financial system can evolve into a **composable, verifiable, fully autonomous** model using Ethereum's distributed infrastructure.
 
 ---
 
@@ -28,7 +22,7 @@ A dedicated threat analysis and security report for KipuBankV3 is available: [Th
 |------|-------------|------------------|
 | **Owner / Admin** | Full control over global contract parameters. | `setLimits`, `setWithdrawCooldown`, `setUniswapRouter`, `addManager`, `addAuditor`, `pause`, `unpause`, `emergencyWithdraw`, `rescueETH`, `rescueTokens`. |
 | **Manager** | Operator who can pause system operations in emergencies. | `pause()` |
-| **Auditor** | Observer with access to the bank�s accounting data. | Read on-chain state. |
+| **Auditor** | Observer with access to the bank's accounting data. | Read on-chain state. |
 | **User** | Any address interacting with the bank. | `deposit`, `withdraw`. |
 
 ---
@@ -165,8 +159,8 @@ Example `args.txt` content (updated order):
 
 Where:
 - The first address is the target network **USDC**.
-- The second address is the **Uniswap V2 router** (for example, Sepolia�s or a test router).
-- The next two numbers are the bank�s global limits in USDC units (1e6 = 1 USDC).
+- The second address is the **Uniswap V2 router** (for example, Sepolia's or a test router).
+- The next two numbers are the bank's global limits in USDC units (1e6 = 1 USDC).
 - The two arrays are the initial lists of `managers` and `auditors`.
 
 ---
@@ -367,7 +361,7 @@ cast send 0xB3153dF451FA29ED5dcc39cDC4E7E24A20F61545 "emergencyWithdraw(address,
 
 ## 1. General Purpose
 
-**KipuBankV3** is the third iteration of the decentralized banking system developed in the course *Distributed Systems � Module 4: Development Tooling & DeFi*.  
+**KipuBankV3** is the third iteration of the decentralized banking system developed in the course *Distributed Systems - Module 4: Development Tooling & DeFi*.  
 This version represents the full transition to an **on-chain DeFi** model by integrating the **Uniswap V2** protocol to perform automatic swaps to **USDC**, removing the price-oracle dependency (Chainlink) used in earlier versions.
 
 The contract allows deposits of **ETH or ERC20 tokens**, automatically converts funds to USDC, and maintains internal balances in that stable value.  
@@ -414,7 +408,7 @@ It keeps the modular architecture, role-based security, and accounting traceabil
 
 ## 5. Learning and Design Decisions
 
-During the development of **KipuBankV3**, the module�s key concepts were applied:
+During the development of **KipuBankV3**, the module's key concepts were applied:
 
 - **DeFi composability:** direct integration with Uniswap V2.  
 - **Functional distribution:** removes centralized intermediaries.  
@@ -424,9 +418,12 @@ During the development of **KipuBankV3**, the module�s key concepts were appli
 
 ---
 
+## Additional reports
+
+A dedicated threat analysis and security report for KipuBankV3 is available: [Threat Analysis Report](Threat Analysis Report - KipuBankV3.md).
+
+---
+
 ## 6. Conclusion
 
 **KipuBankV3** marks the definitive step toward a **fully decentralized, secure, and auditable** financial system. The contract delivers a professional architecture grounded in distributed systems principles, integrates real-world protocols (Uniswap V2), and applies sound Web3 development practices, meeting all objectives of **TP4 - Development Tooling & DeFi**.
----
-
-
