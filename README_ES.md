@@ -420,7 +420,7 @@ Durante el desarrollo de **KipuBankV3** se aplicaron los conceptos clave del mó
 
 ## 🔗 Informes adicionales
 
-Existe un informe dedicado de análisis de amenazas y seguridad para KipuBankV3: [Informe de Analisis de Amenazas](Informe de Analisis de Amenazas.md).
+Existe un informe dedicado de análisis de amenazas y seguridad para KipuBankV3: [Informe de Analisis de Amenazas](Informe%20de%20Analisis%20de%20Amenazas.md).
 
 ---
 

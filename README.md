@@ -420,7 +420,7 @@ During the development of **KipuBankV3**, the module's key concepts were applied
 
 ## Additional reports
 
-A dedicated threat analysis and security report for KipuBankV3 is available: [Threat Analysis Report](Threat Analysis Report - KipuBankV3.md).
+A dedicated threat analysis and security report for KipuBankV3 is available: [Threat Analysis Report](Threat%20Analysis%20Report%20-%20KipuBankV3.md).
 
 ---
 
