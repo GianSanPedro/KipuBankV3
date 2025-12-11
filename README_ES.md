@@ -16,6 +16,8 @@ A su vez, mantiene los principios de **control distribuido, seguridad, modularid
 
 La finalidad de KipuBankV3 es demostrar cómo un sistema financiero tradicional puede evolucionar hacia un modelo **componible, verificable y totalmente autónomo**, utilizando la infraestructura distribuida de Ethereum.
 
+Existe un informe dedicado de análisis de amenazas y seguridad para KipuBankV3: [Informe de Analisis de Amenazas - KipuBankV3](Informe%20de%20Analisis%20de%20Amenazas%20-%20KipuBankV3.md).
+
 ---
 
 ## 🧭 **Roles y funciones**
