@@ -35,12 +35,25 @@ contract MockFactory is IUniswapV2Factory {
         return pairs[_key(a, b)];
     }
 
-    
-    function allPairs(uint256) external pure returns (address) { return address(0); }
-    function allPairsLength() external pure returns (uint256) { return 0; }
-    function createPair(address, address) external pure returns (address) { return address(0); }
-    function feeTo() external pure returns (address) { return address(0); }
-    function feeToSetter() external pure returns (address) { return address(0); }
+    function allPairs(uint256) external pure returns (address) {
+        return address(0);
+    }
+
+    function allPairsLength() external pure returns (uint256) {
+        return 0;
+    }
+
+    function createPair(address, address) external pure returns (address) {
+        return address(0);
+    }
+
+    function feeTo() external pure returns (address) {
+        return address(0);
+    }
+
+    function feeToSetter() external pure returns (address) {
+        return address(0);
+    }
     function setFeeTo(address) external {}
     function setFeeToSetter(address) external {}
 
@@ -77,13 +90,10 @@ contract MockRouter {
         amounts[len - 1] = amountIn * 2;
     }
 
-    function swapExactTokensForTokens(
-        uint256 amountIn,
-        uint256,
-        address[] calldata path,
-        address to,
-        uint256
-    ) external returns (uint256[] memory amounts) {
+    function swapExactTokensForTokens(uint256 amountIn, uint256, address[] calldata path, address to, uint256)
+        external
+        returns (uint256[] memory amounts)
+    {
         uint256 len = path.length;
         amounts = new uint256[](len);
         for (uint256 i = 0; i < len; i++) {

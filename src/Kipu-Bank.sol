@@ -455,7 +455,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
             pathEth[1] = address(USDC);
 
             uint256[] memory amountsOutEth = uniswapRouter.getAmountsOut(amount, pathEth);
-            if (amountsOutEth.length < 2) revert UnexpectedFailure('Uniswap: ruta de conversion invalida');
+            if (amountsOutEth.length < 2) revert UnexpectedFailure("Uniswap: ruta de conversion invalida");
             uint256 amountOutMinEth = (amountsOutEth[1] * 95) / 100;
 
             uint256[] memory amountsEth = uniswapRouter.swapExactETHForTokens{value: amount}(
@@ -478,7 +478,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         IERC20(fromToken).approve(address(uniswapRouter), amount);
 
         uint256[] memory amountsOut = uniswapRouter.getAmountsOut(amount, path);
-        if (amountsOut.length < 2) revert UnexpectedFailure('Uniswap: ruta de conversion invalida');
+        if (amountsOut.length < 2) revert UnexpectedFailure("Uniswap: ruta de conversion invalida");
         uint256 amountOutMin = (amountsOut[amountsOut.length - 1] * 95) / 100;
 
         uint256[] memory amounts =
@@ -626,7 +626,7 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @param amount Cantidad a convertir.
      * @return estimatedUSDC Monto estimado en USDC que se obtendra en un swap real.
      */
-        function estimateUSDCValue(address token, uint256 amount) public view returns (uint256 estimatedUSDC) {
+    function estimateUSDCValue(address token, uint256 amount) public view returns (uint256 estimatedUSDC) {
         if (amount == 0) revert InvalidAmount(amount);
         if (token == address(USDC)) return amount;
 
@@ -645,12 +645,12 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
         try uniswapRouter.getAmountsOut(amount, path) returns (uint256[] memory amountsOut) {
             if (amountsOut.length != path.length || amountsOut[amountsOut.length - 1] == 0) {
-                revert UnexpectedFailure('Uniswap: ruta de conversion invalida');
+                revert UnexpectedFailure("Uniswap: ruta de conversion invalida");
             }
 
             estimatedUSDC = amountsOut[amountsOut.length - 1];
         } catch {
-            revert UnexpectedFailure('Uniswap: error al obtener cotizacion');
+            revert UnexpectedFailure("Uniswap: error al obtener cotizacion");
         }
     }
 
@@ -784,9 +784,8 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
      * @return path Ruta de intercambio para Uniswap V2.
      */
     function _buildERC20ToUSDCPath(address token) internal view returns (address[] memory path) {
-        address directPair = address(uniswapFactory) != address(0)
-            ? uniswapFactory.getPair(token, address(USDC))
-            : address(0);
+        address directPair =
+            address(uniswapFactory) != address(0) ? uniswapFactory.getPair(token, address(USDC)) : address(0);
 
         if (directPair != address(0)) {
             path = new address[](2);
@@ -797,12 +796,9 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
         if (WETH == address(0)) revert NoUSDCpair(token);
 
-        address pairToWeth = address(uniswapFactory) != address(0)
-            ? uniswapFactory.getPair(token, WETH)
-            : address(0);
-        address pairWethUsdc = address(uniswapFactory) != address(0)
-            ? uniswapFactory.getPair(WETH, address(USDC))
-            : address(0);
+        address pairToWeth = address(uniswapFactory) != address(0) ? uniswapFactory.getPair(token, WETH) : address(0);
+        address pairWethUsdc =
+            address(uniswapFactory) != address(0) ? uniswapFactory.getPair(WETH, address(USDC)) : address(0);
 
         if (pairToWeth == address(0) || pairWethUsdc == address(0)) revert NoUSDCpair(token);
 
@@ -929,12 +925,4 @@ contract KipuBankV3 is Ownable, AccessControl, ReentrancyGuard, Pausable {
         emit RescueExecuted(token, to, amount, block.timestamp);
     }
 }
-
-
-
-
-
-
-
-
 
