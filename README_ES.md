@@ -2,6 +2,8 @@
 ### Curso: *Sistemas Distribuidos - Módulo 4: Development Tooling & DeFi*
 ### Autor: **Gianfranco San Pedro**
 
+> Version en ingles: [README.md](README.md).
+
 ---
 
 ## 📌 **Presentación general**

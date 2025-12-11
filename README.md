@@ -2,6 +2,8 @@
 ### Course: *Distributed Systems - Module 4: Development Tooling & DeFi*
 ### Author: **Gianfranco San Pedro**
 
+> Spanish version: [README_ES.md](README_ES.md).
+
 ---
 
 ## General Overview

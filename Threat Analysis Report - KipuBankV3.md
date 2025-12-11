@@ -1,5 +1,7 @@
 # Threat Analysis Report - KipuBankV3
 
+> Spanish version: [Informe de Analisis de Amenazas - KipuBankV3](Informe%20de%20Analisis%20de%20Amenazas%20-%20KipuBankV3.md).
+
 ## 1. Brief summary
 KipuBankV3 is an on-chain bank that standardizes on a single stable asset: USDC. The core idea is simple:
 
